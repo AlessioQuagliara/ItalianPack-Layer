@@ -1,0 +1,254 @@
+# =============================================================================
+# root/compose.yaml
+# =============================================================================
+
+services:
+
+# -------------------------------------------------------------------------------
+# TRAEFIK - Reverse Proxy
+# -------------------------------------------------------------------------------
+
+  traefik:
+    image: traefik:v3.6.12
+    container_name: traefik
+    restart: unless-stopped
+    command:
+    # Per dashboard
+      - "--api.dashboard=true"
+    # Per test senza SSL
+      - "--api.insecure=true"
+    # Per Providers del container
+      - "--providers.docker=true"      
+    # Per non esporto di default (utile in rinnovo certificati)
+      - "--providers.docker.exposedbydefault=false"
+    # Per metterlo di dominio sulla porta 80
+      - "--entrypoints.web.address=:80"
+    # CONFIGURAZIONE HTTPS COMMENTATA PER VIA DELLA FASE DI SVILUPPO ------------
+      #- "--entrypoints.websecure.address=:443"
+      #- "--certificatesresolvers.le.acme.httpchallenge=true"
+      #- "--certificatesresolvers.le.acme.httpchallenge.entrypoints=web"
+      #- "--certificatesresolvers.le.acme.email=quagliara.alessio@outlook.com"
+      #- "--certificatesresolvers.le.acme.storage=/acme.json"
+    ports:
+      - "80:80"
+      #- "443:443"
+      # Per esporre la porta
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      #- ./traefik/acme.json:/acme.json 
+    networks:
+      - web
+
+# -------------------------------------------------------------------------------
+# POSTGRES - DB
+# -------------------------------------------------------------------------------
+
+# Servizio DB
+  db:
+  # Uso l'immagine postgres 16 (che è la più leggera)
+    image: postgres:16-alpine
+    container_name: saas_db
+    restart: unless-stopped
+    # Carico le variabili dal file .env
+    env_file:
+      - .env
+    # Passaggio parametri a Postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    # Solite porte del DB
+    ports:
+      - "5432:5432"
+    # Volume salvato per persistenza nei riavvii
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    # Aggiunto servizio network
+    networks:
+      - web
+
+# -------------------------------------------------------------------------------
+# REDIS
+# -------------------------------------------------------------------------------
+
+  redis:
+    image: redis:7.4.8-alpine@sha256:8b81dd37ff027bec4e516d41acfbe9fe2460070dc6d4a4570a2ac5b9d59df065
+    container_name: saas_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - web
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+# -------------------------------------------------------------------------------
+# BACKEND
+# -------------------------------------------------------------------------------
+
+  backend:
+    # "build" Dice di creare l'immagine della cartella backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: saas_backend
+    restart: unless-stopped
+    # Controlla se il backend risponde ancora
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/controlli/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    # Passa le variabili anche su Backend
+    env_file:
+      - .env
+    # Legge il percorso URL del DB dal file .env
+    environment:
+      APP_DATABASE_URL: ${APP_DATABASE_URL}
+    # Espone su porta 8000
+    ports:
+      - "8000:8000"
+   # Dice a compose che il backend dipende da DB, così fa partire prima il db 
+    depends_on:
+      - db
+      - redis
+    # Monta il codice dentro app nella cartella backend
+    volumes:
+      - ./backend/app:/app/app
+    # Aggiunto servizio network
+    networks:
+      - web
+    # Router dashboard di render_templates (Jinja2)
+    labels:
+      - "traefik.enable=true"
+      # Unico service backend
+      - "traefik.http.services.backend-svc.loadbalancer.server.port=8000"
+      # Router admin locale
+      - "traefik.http.routers.backend-admin-local.rule=Host(`admin.localhost`)"  
+      - "traefik.http.routers.backend-admin-local.entrypoints=web"
+      - "traefik.http.routers.backend-admin-local.service=backend-svc"
+      # Router admin produzione
+      - "traefik.http.routers.backend-admin-prod.rule=Host(`admin.linkbay-cms.com`)"
+      - "traefik.http.routers.backend-admin-prod.entrypoints=web"
+      - "traefik.http.routers.backend-admin-prod.service=backend-svc"
+      # TLS prod in futuro:
+      # - "traefik.http.routers.backend-admin-prod.entrypoints=websecure"
+      # - "traefik.http.routers.backend-admin-prod.tls.certresolver=le"
+
+
+# -------------------------------------------------------------------------------
+# FRONTEND
+# -------------------------------------------------------------------------------
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: saas_frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/app:/app/app
+      - ./frontend/eslint.config.mjs:/app/eslint.config.mjs
+      - ./frontend/next-env.d.ts:/app/next-env.d.ts
+      - ./frontend/next.config.ts:/app/next.config.ts
+      - ./frontend/postcss.config.mjs:/app/postcss.config.mjs
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+    # Nel caso volessimo chiamare il backend
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: "http://localhost:8000"
+    # Aggiunto servizio network
+    networks:
+      - web
+    # Router Landing di Next.JS
+    labels:
+      - "traefik.enable=true"
+      # Unico service per il frontend (porta interna 3000)
+      - "traefik.http.services.frontend-svc.loadbalancer.server.port=3000"
+      # Router locale: www.localhost -> frontend-svc
+      - "traefik.http.routers.frontend-www-local.rule=Host(`www.localhost`)"
+      - "traefik.http.routers.frontend-www-local.entrypoints=web"
+      - "traefik.http.routers.frontend-www-local.service=frontend-svc"
+      # Router produzione: www.linkbay-cms.com -> frontend-svc
+      - "traefik.http.routers.frontend-www-prod.rule=Host(`www.linkbay-cms.com`)"
+      - "traefik.http.routers.frontend-www-prod.entrypoints=web"
+      - "traefik.http.routers.frontend-www-prod.service=frontend-svc"
+      # per TLS prod in futuro:
+      # - "traefik.http.routers.frontend-www-prod.entrypoints=websecure"
+      # - "traefik.http.routers.frontend-www-prod.tls.certresolver=le"
+
+
+# -------------------------------------------------------------------------------
+# LiteLLM - Per comandare x LLM differenti, Fare Switch in caso  di problemi GDPR
+# -------------------------------------------------------------------------------
+
+  LiteLLM:
+    container_name: litellm
+    image: ghcr.io/berriai/litellm:main-stable@sha256:9e1536c6a9219519f024f221706b20b012ca5176988164798adc5c7fe011e5d5
+    volumes:
+      - ./litellm_config.yaml:/app/config.yaml
+    depends_on:
+      - db
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    env_file:
+      - .env
+    environment:
+      - APP_DEEPSEEK_API_KEY=${APP_DEEPSEEK_API_KEY}
+      - LITELLM_MASTER_KEY=${APP_LITELLM_MASTER_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/litellm
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.litellm.rule=Host(`litellm.localhost`)"
+      - "traefik.http.routers.litellm.entrypoints=web"
+      - "traefik.http.services.litellm.loadbalancer.server.port=4000"
+    networks:
+      - web
+
+
+# -------------------------------------------------------------------------------
+# n8n - Per automazioni
+# ------------------------------------------------------------------------------- 
+
+  n8n:
+    image: n8nio/n8n:1.123.27@sha256:289a52a09f6dd3d5fa1f1345713e967b92fe920aff2dd263edd413ffe69de0e5
+    env_file:
+      - .env
+    environment:
+      - N8N_ENCRYPTION_KEY=${APP_N8N_ENCRYPTION_KEY}
+      - N8N_SECURE_COOKIE=false
+      - N8N_TRUST_PROXY=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - LiteLLM
+    restart: unless-stopped
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.localhost`)"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+
+networks:
+  web:
+    driver: bridge
+
+# Definisce il nome volume usato dal serizio
+volumes:
+  pg_data:
+  redis_data:
+  n8n_data:
