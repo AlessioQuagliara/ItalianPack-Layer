@@ -3,7 +3,13 @@
 <div class="uk-card uk-card-body">
     <h3 class="uk-card-title">Login</h3>
 
-    <form method="POST" action="login.html">
+    <form action="login" method="post">
+
+        {% if error %}
+            <div class="uk-alert-danger" uk-alert>
+                <p>{{ error }}</p>
+            </div>
+        {% endif %}
 
         <div class="uk-margin">
             <input class="uk-input" name="username" type="text" placeholder="Username" aria-label="Username">
