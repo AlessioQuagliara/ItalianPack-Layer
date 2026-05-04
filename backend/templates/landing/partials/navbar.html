@@ -1,27 +1,22 @@
 <!-- templates/landing/partials/navbar.html -->
-<nav class="uk-navbar-container" uk-navbar style="padding: 1rem;">
-    <div class="uk-navbar-left">
+<nav class="bg-gray-100 p-4">
+    <div class="flex items-center justify-start">
+        <ul class="flex space-x-8">
+            {# Link Home #}
+            <li>
+                <a href="{{ url_for('index') }}" 
+                   class="text-sm font-medium transition-colors {% if title == 'Home' %} text-blue-600 border-b-2 border-blue-600 pb-1 {% else %} text-gray-600 hover:text-blue-500 {% endif %}">
+                    Home
+                </a>
+            </li>
 
-        <ul class="uk-navbar-nav">
-            {% if title == 'Home' %}
-            <li class="uk-active">
-                <a  href="{{ url_for('index') }}">Home</a>
-            </li>
-            {% else %}
+            {# Link Login #}
             <li>
-                <a  href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('login') }}" 
+                   class="text-sm font-medium transition-colors {% if title == 'Login' %} text-blue-600 border-b-2 border-blue-600 pb-1 {% else %} text-gray-600 hover:text-blue-500 {% endif %}">
+                    Login
+                </a>
             </li>
-            {% endif %}
-            {% if title == 'Login' %}
-            <li class="uk-active">
-                <a  href="{{ url_for('login') }}">Login</a>
-            </li>
-            {% else %}
-            <li>
-                <a  href="{{ url_for('login') }}">Login</a>
-            </li>
-            {% endif %}
         </ul>
-
     </div>
 </nav>

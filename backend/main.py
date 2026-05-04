@@ -42,6 +42,11 @@ def page_not_found(error):
 def server_error(error):
     return render_template("landing/error/500.html")
 
+@app.route("/admin")
+@app.route("/admin/dashboard")
+def admin_dashboard():
+    title = "Dashboard"
+    return render_template("admin/dashboard.html", title=title)
 
 #Dalla documentazione: development server, only for development, DON'T USE IN PRODUCTION
 if __name__ == "__main__":
