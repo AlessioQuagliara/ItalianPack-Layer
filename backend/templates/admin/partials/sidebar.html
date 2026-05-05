@@ -1,34 +1,50 @@
-<!-- Overlay (Sfondo scuro) -->
-<div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity"></div>
-
-<!-- Sidebar -->
-<div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-900 text-white z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
-    
-    <div class="p-4 flex flex-col h-full">
-        <!-- Close Button -->
-        <button onclick="toggleSidebar()" class="self-end p-2 hover:text-gray-400">
-            <i class="ri-close-line text-2xl"></i>
-        </button>
-
-        <div class="mt-4">
-            <ul class="space-y-2">
-                <!-- Logo Sidebar -->
-                <li>
-                    <a href="" class="block py-2 px-4 font-bold text-lg hover:bg-gray-800 rounded">
-                        LOGO
-                    </a>
-                </li>
-
-                <hr class="border-gray-700 my-4">
-
-                <!-- Dashboard Link -->
-                <li>
-                    <a href="" class="flex items-center space-x-3 py-2 px-4 hover:bg-gray-800 rounded transition-colors">
-                        <i class="ri-home-line"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</div>
+<ul class="menu bg-base-200 rounded-box">
+  <li>
+    <a class="tooltip tooltip-right" data-tip="Home">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    </a>
+  </li>
+  <li>
+    <a class="tooltip tooltip-right" data-tip="Details">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </a>
+  </li>
+  <li>
+    <a class="tooltip tooltip-right" data-tip="Stats">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    </a>
+  </li>
+</ul>

@@ -1,0 +1,17 @@
+<!-- templates/admin/dashboard.html -->
+
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+<p>{{content}}</p>
+<p>{{role}}</p>
+
+{% if role == 'spare_parts' %}
+<p>Dashboard Ricambi</p>
+{% elif role == 'warehouse' %}
+<p>Dashboard Magazzino</p>
+{% endif %}
+
+<a href="{{ url_for('logout') }}">Esci</a>
+{% endblock %}

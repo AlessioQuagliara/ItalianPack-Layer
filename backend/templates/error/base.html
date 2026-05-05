@@ -1,23 +1,23 @@
-<!-- templates/admin/base.html -->
-<!DOCTYPE html>
+<!-- templates/error/base.html -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}{{title}}{% endblock %} - Admin</title>
+    <title>{% block title %}{{title}}{% endblock %}</title>
     <!-- Tailwind + daisyUI -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.css" integrity="sha512-kJlvECunwXftkPwyvHbclArO8wszgBGisiLeuDFwNM8ws+wKIw0sv1os3ClWZOcrEB2eRXULYUsm8OVRGJKwGA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-    {% include "admin/partials/sidebar.html" %}
-    {% include "admin/partials/navbar.html" %}
-    
     {% block content %}{% endblock %}
 
-    {% include "admin/partials/footer.html" %}
-
+    <script>
+        // Funzione JavaScript
+            function tornaIndietro() {
+            window.history.back();
+            }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </body>
 </html>

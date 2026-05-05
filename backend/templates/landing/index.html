@@ -1,0 +1,51 @@
+<!-- templates/landing/home.html -->
+{% extends 'shared/base.html' %}
+
+{% block content %}
+<div class="hero bg-base-200 min-h-screen">
+  <div class="hero-content text-center">
+    <div class="max-w-4xl">
+
+    <div class="flex w-full flex-col lg:flex-row justify-center gap-4">
+
+
+        <div class="card bg-base-300 rounded-box grid place-items-center">
+            <div class="card bg-base-100 w-96 shadow-sm">
+                <figure>
+                    <img
+                    src="https://www.garimaglobal.com/blogs/wp-content/uploads/2024/09/y.png"
+                    alt="spare_parts" />
+                </figure>
+                <div class="card-body">
+                    <h2 class="card-title">Spare Parts</h2>
+                    <p>Layer Operativo per il reparto Post Vendita e nello specifico per i Ricambi(spare_parts)</p>
+                    <div class="card-actions justify-end">
+                    <a href="{{ url_for('index_spare_parts') }}" class="btn btn-primary">Vai</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="card bg-base-300 rounded-box grid place-items-center">
+            <div class="card bg-base-100 w-96 shadow-sm">
+                <figure>
+                    <img
+                    src="https://www.americanwarehouses.com/hubfs/AmericanWarehouses_Blog_TheBestApproachToLeasingWarehouseSpace.jpg"
+                    alt="Warehouse" />
+                </figure>
+                <div class="card-body">
+                    <h2 class="card-title">Warehouse</h2>
+                    <p>Layer Operativo per il reparto Magazzino</p>
+                    <div class="card-actions justify-end">
+                    <a href="{{ url_for('index_warehouse') }}" class="btn btn-primary">Vai</a>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
