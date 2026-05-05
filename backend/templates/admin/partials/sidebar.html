@@ -2,26 +2,34 @@
   
   <!-- 1. HEADER -->
   <div class="p-4 font-bold text-xl border-b border-base-300">
-    <span class="is-drawer-close:hidden text-dark">IL MIO LOGO</span>
+    <span class="is-drawer-close:hidden text-dark">
+      <img src="https://www.italianpack.com/wp-content/uploads/2018/08/italian-pack-logo.png" alt="" srcset="">
+    </span>
   </div>
 
   <!-- 2. CONTENUTO CENTRALE  -->
   <ul class="menu w-full grow overflow-y-auto px-4 py-2">
     <li>
       <a href="dashboard" class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Homepage">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor" class="size-4"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+        <i class="ri-home-line"></i>
         <span class="is-drawer-close:hidden">Homepage</span>
       </a>
     </li>
 
+    <!-- CONTENUTO MAGAZZINO  -->
+    {% if role == 'warehouse' %}
+
     <li>
-      <a>
-        <span class="is-drawer-close:hidden flex justify-between w-full items-center">
-          Tema 
-          <input type="checkbox" value="synthwave" class="toggle toggle-sm theme-controller" />
-        </span>
+      <a href="{{ url_for('warehouse.missed_parts') }}" class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Homepage">
+        <i class="ri-file-list-3-line"></i>
+        <span class="is-drawer-close:hidden">Missed Part</span>
       </a>
     </li>
+
+    {% else %}
+      <p>cannone in giallo</p>
+    {% endif %}
+
 
   </ul>
 
@@ -33,12 +41,12 @@
       <div tabindex="0" role="button" class="btn btn-ghost w-full h-auto py-3 px-2 flex items-center justify-start gap-3 hover:bg-base-300 transition-colors">
         <div class="avatar placeholder">
           <div class="bg-neutral text-neutral-content rounded-full w-8">
-            <span class="text-xs">UI</span>
+            <span class="text-xs">{{avatar}}</span>
           </div>
         </div>
         <div class="is-drawer-close:hidden text-left overflow-hidden">
-          <p class="text-sm font-semibold truncate">Nome Utente</p>
-          <p class="text-xs opacity-50 truncate">user@example.com</p>
+          <p class="text-sm font-semibold truncate">{{username}}</p>
+          <p class="text-xs opacity-50 truncate">{{role}}</p>
         </div>
       </div>
 
@@ -46,7 +54,7 @@
       <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-56 p-2 shadow-xl mb-2 border border-base-300">
         <li class="menu-title is-drawer-close:hidden"><span>Account</span></li>
         <li>
-          <a href="/settings" class="gap-3">
+          <a href="settings" class="gap-3">
             <svg xmlns="http://w3.org" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             Settings
           </a>

@@ -1,0 +1,15 @@
+<!-- templates/shared/components/modals_add.html -->
+
+<dialog id="create_new_modal" class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">Add New</h3>
+    <p class="py-4">Press <kbd class="kbd kbd-sm">ESC</kbd> to close</p>
+    <div class="modal-action">
+      <form method="post" action="{{ url_for('warehouse.manage_missed_part') }}">
+        <!-- if there is a button in form, it will close the modal -->
+         {% include partial_form_add %}
+        <button class="btn btn-accent" type="submit">Save</button>
+      </form>
+    </div>
+  </div>
+</dialog>

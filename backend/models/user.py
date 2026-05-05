@@ -10,3 +10,5 @@ utenti = [
     Utente("Alessio", "warehouse", "ciao"),
     Utente("Thomas", "spare_parts", "1234")
 ]
+
+column_number = len(vars(utenti[0]))

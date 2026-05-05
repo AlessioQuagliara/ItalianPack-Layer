@@ -10,7 +10,10 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <!-- Remixcon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.css" integrity="sha512-kJlvECunwXftkPwyvHbclArO8wszgBGisiLeuDFwNM8ws+wKIw0sv1os3ClWZOcrEB2eRXULYUsm8OVRGJKwGA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- HTMX -->
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
 </head>
 <body>
 <div class="drawer lg:drawer-open">
@@ -41,7 +44,41 @@
      
 </div>
 
+<script>
+  (() => {
+    const savedTheme = localStorage.getItem("theme") || "default";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  })();
+</script>
 
+<script>
+  function updateClock() {
+    const now = new Date();
+
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+
+    const hoursEl = document.getElementById("hours");
+    const minutesEl = document.getElementById("minutes");
+    const secondsEl = document.getElementById("seconds");
+
+    hoursEl.style.setProperty("--value", h);
+    minutesEl.style.setProperty("--value", m);
+    secondsEl.style.setProperty("--value", s);
+
+    hoursEl.textContent = String(h).padStart(2, "0");
+    minutesEl.textContent = String(m).padStart(2, "0");
+    secondsEl.textContent = String(s).padStart(2, "0");
+
+    hoursEl.setAttribute("aria-label", h);
+    minutesEl.setAttribute("aria-label", m);
+    secondsEl.setAttribute("aria-label", s);
+  }
+
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </body>

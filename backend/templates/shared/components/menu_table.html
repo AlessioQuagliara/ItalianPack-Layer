@@ -1,0 +1,37 @@
+<!-- templates/shared/components/menu_table.html -->
+
+<ul class="menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box">
+
+    <li>
+        <div class="dropdown dropdown-left">
+            <span tabindex="0" role="button"><i class="ri-file-line"></i> File <i class="ri-arrow-drop-down-fill"></i></span>
+            <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                <li><a><i class="ri-file-pdf-2-line"></i> Export PDF</a></li>
+                <li><a><i class="ri-file-excel-2-line"></i> Export Excel</a></li>
+                <li><a><i class="ri-import-line"></i> Import Data</a></li>
+                <li><a><i class="ri-price-tag-3-line"></i> Print Label</a></li>
+                <li><a><i class="ri-qr-code-line"></i> Print QR</a></li>
+            </ul>
+        </div>
+    </li>
+
+    <li>
+        <a><i class="ri-file-copy-line"></i> Copy</a>
+    </li>
+
+    <li>
+        <a><i class="ri-clipboard-line"></i> Paste</a>
+    </li>
+
+    <li>
+        <a onclick="create_new_modal.showModal()"><i class="ri-file-add-line"></i> Add New</a>
+    </li>
+
+    <li>
+        <a onclick="edit_modal.showModal()"><i class="ri-file-edit-line"></i> Edit</a>
+    </li>
+
+    <li>
+        <a onclick="delete_modal.showModal()"><i class="ri-delete-bin-line"></i> Delete</a>
+    </li>
+</ul>

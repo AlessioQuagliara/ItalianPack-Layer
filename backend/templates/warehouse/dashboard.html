@@ -4,14 +4,4 @@
 
 {% block content %}
 
-<p>{{content}}</p>
-<p>{{role}}</p>
-
-{% if role == 'warehouse' %}
-<p>Dashboard Magazzino</p>
-{% else %}
-<p>Utente non autorizzato</p>
-{% endif %}
-
-<a href="{{ url_for('auth.logout') }}">Esci</a>
 {% endblock %}

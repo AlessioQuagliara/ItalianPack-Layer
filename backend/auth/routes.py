@@ -1,6 +1,6 @@
 # auth/routes.py
-from flask import Flask, flash, render_template, url_for, request, redirect, session, Blueprint
-from models.user import Utente, utenti
+from flask import render_template, url_for, request, redirect, session, Blueprint
+from models.user import utenti
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 

@@ -1,0 +1,23 @@
+<!-- templates/shared/components/table.html -->
+
+<table class="table table-zebra">
+    <!-- head -->
+    <thead>
+      <tr class="hover:bg-base-300">
+        <th>
+          <label><input type="checkbox" class="checkbox" />
+          </label>
+        </th>
+        {% for column in columns %}
+          <th>
+            {{column}}
+          </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+
+      {% include partial_path %}
+      
+    </tbody>
+  </table>

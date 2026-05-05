@@ -1,0 +1,288 @@
+<!-- templates/shared/components/settings_theme.html -->
+
+<div class="max-w-4xl space-y-6">
+  <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+    <!-- Tema -->
+    <section class="card bg-base-100 shadow-sm border border-base-300">
+      <div class="card-body">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="card-title">Interface Theme</h2>
+            <p class="text-sm text-base-content/70">
+              The selection is applied immediately and is saved for subsequent visits to the same browser.
+            </p>
+          </div>
+          <div class="badge badge-outline" id="theme-badge">light</div>
+        </div>
+
+        <div class="divider my-2"></div>
+
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Select a theme</legend>
+
+          <div class="grid gap-3 sm:grid-cols-2">
+            <!-- Light -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Light</div>
+                <div class="text-xs text-base-content/60">Clean, neutral, default</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="light"
+              />
+            </label>
+
+            <!-- Dark -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Dark</div>
+                <div class="text-xs text-base-content/60">Low‑light, high contrast</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="dark"
+              />
+            </label>
+
+            <!-- Corporate -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Corporate</div>
+                <div class="text-xs text-base-content/60">Business, professional</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="corporate"
+              />
+            </label>
+
+            <!-- Emerald -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Emerald</div>
+                <div class="text-xs text-base-content/60">Soft green, modern</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="emerald"
+              />
+            </label>
+
+            <!-- Retro -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Retro</div>
+                <div class="text-xs text-base-content/60">Warm, vintage vibes</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="retro"
+              />
+            </label>
+
+            <!-- Cyberpunk -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Cyberpunk</div>
+                <div class="text-xs text-base-content/60">Neon, high energy</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="cyberpunk"
+              />
+            </label>
+
+            <!-- Aqua -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Aqua</div>
+                <div class="text-xs text-base-content/60">Fresh, soft, relaxed</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="aqua"
+              />
+            </label>
+
+            <!-- Night -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Night</div>
+                <div class="text-xs text-base-content/60">Deep dark, calm, modern</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="night"
+              />
+            </label>
+
+            <!-- Luxury -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Luxury</div>
+                <div class="text-xs text-base-content/60">Dark, elegant, premium feel</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="luxury"
+              />
+            </label>
+
+            <!-- Dracula -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Dracula</div>
+                <div class="text-xs text-base-content/60">Dark, developer friendly</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="dracula"
+              />
+            </label>
+
+            <!-- Nord -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Nord</div>
+                <div class="text-xs text-base-content/60">Cool, minimal, arctic tones</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="nord"
+              />
+            </label>
+
+            <!-- Winter -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Winter</div>
+                <div class="text-xs text-base-content/60">Bright, crisp, clean UI</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="winter"
+              />
+            </label>
+
+            <!-- Valentine -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Valentine</div>
+                <div class="text-xs text-base-content/60">Soft, bright, slightly playful</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="valentine"
+              />
+            </label>
+
+            <!-- Forest -->
+            <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors">
+              <div>
+                <div class="font-medium">Forest</div>
+                <div class="text-xs text-base-content/60">Dark green, natural, grounded</div>
+              </div>
+              <input
+                type="radio"
+                name="theme-radios"
+                class="radio radio-sm theme-controller"
+                value="forest"
+              />
+            </label>
+
+          </div>
+        </fieldset>
+      </div>
+    </section>
+
+    <!-- Preview / info rimane identico -->
+    <aside class="card bg-base-100 shadow-sm border border-base-300">
+      <div class="card-body">
+        <h2 class="card-title">Preview</h2>
+
+        <div class="mockup-browser bg-base-200 w-full border border-base-300">
+          <div class="mockup-browser-toolbar">
+            <div class="input">https://alessioquagliara.com</div>
+          </div>
+          <div class="grid place-content-center h-80">Hello {{username}}!</div>
+        </div>
+
+        <div class="rounded-box border border-base-300 bg-base-200 p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-medium">Active theme</span>
+            <span class="badge badge-primary" id="theme-name">light</span>
+          </div>
+
+          <button type="button" class="btn btn-primary btn-sm w-full">Primary BTN</button>
+          <button type="button" class="btn btn-outline btn-sm w-full">Secondary BTN</button>
+
+          <div class="alert alert-info text-sm">
+            <span>Your changes are saved automatically.</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const STORAGE_KEY = "theme";
+    const DEFAULT_THEME = "light";
+    const root = document.documentElement;
+    const radios = document.querySelectorAll('input[name="theme-radios"]');
+    const themeName = document.getElementById("theme-name");
+    const themeBadge = document.getElementById("theme-badge");
+
+    const allowedThemes = Array.from(radios).map(radio => radio.value);
+    const savedTheme = localStorage.getItem(STORAGE_KEY);
+    const activeTheme = allowedThemes.includes(savedTheme) ? savedTheme : DEFAULT_THEME;
+
+    root.setAttribute("data-theme", activeTheme);
+
+    radios.forEach((radio) => {
+      radio.checked = radio.value === activeTheme;
+
+      radio.addEventListener("change", () => {
+        if (!radio.checked) return;
+
+        const selectedTheme = radio.value;
+        root.setAttribute("data-theme", selectedTheme);
+        localStorage.setItem(STORAGE_KEY, selectedTheme);
+
+        if (themeName) themeName.textContent = selectedTheme;
+        if (themeBadge) themeBadge.textContent = selectedTheme;
+      });
+    });
+
+    if (themeName) themeName.textContent = activeTheme;
+    if (themeBadge) themeBadge.textContent = activeTheme;
+  })();
+</script>

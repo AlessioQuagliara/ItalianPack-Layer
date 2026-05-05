@@ -1,5 +1,5 @@
 # main.py
-from flask import Flask, flash, render_template, url_for, request, redirect, session, Blueprint
+from flask import Flask, render_template
 
 from core.config import Config
 
