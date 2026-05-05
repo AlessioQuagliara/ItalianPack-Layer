@@ -1,5 +1,4 @@
 # auth/routes.py
-from sys import prefix
 from flask import Flask, flash, render_template, url_for, request, redirect, session, Blueprint
 from models.user import Utente, utenti
 
@@ -21,9 +20,9 @@ def login():
                     session['username'] = username
                     session['role'] = utente.role
                     if utente.role == 'spare_parts':
-                        return redirect(url_for('spare_parts_dashboard'))
+                        return redirect(url_for('spare_parts.dashboard'))
                     elif utente.role == 'warehouse':
-                        return redirect(url_for('warehouse_dashboard'))
+                        return redirect(url_for('warehouse.dashboard'))
                     else:
                         return "Not authorized", 401
 
@@ -38,4 +37,4 @@ def login():
 def logout():
     session.pop('username', None)
     session.pop('role', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('auth.login'))

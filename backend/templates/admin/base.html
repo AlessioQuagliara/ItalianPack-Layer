@@ -5,19 +5,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}{{title}}{% endblock %} - Admin</title>
+    <link rel="shortcut icon" href="https://www.italianpack.com/wp-content/uploads/2019/10/favicon.ico" type="image/x-icon">
     <!-- Tailwind + daisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.css" integrity="sha512-kJlvECunwXftkPwyvHbclArO8wszgBGisiLeuDFwNM8ws+wKIw0sv1os3ClWZOcrEB2eRXULYUsm8OVRGJKwGA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-    {% include "admin/partials/sidebar.html" %}
-    {% include "admin/partials/navbar.html" %}
+<div class="drawer lg:drawer-open">
+
+    <input id="my-drawer-4" type="checkbox" class="drawer-toggle" />
+
+    <div class="drawer-content">
+        
+        <!-- Navbar -->
+        {% include "admin/partials/navbar.html" %}
+        
+        <!-- Page content here -->
+        <div class="p-4">
+            {% block content %}{% endblock %}
+        </div>
+        
+    </div>
     
-    {% block content %}{% endblock %}
+    <div class="drawer-side is-drawer-close:overflow-visible">
+        <label for="my-drawer-4" aria-label="close sidebar" class="drawer-overlay"></label>
+        <div class="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-14 is-drawer-open:w-64">
 
-    {% include "admin/partials/footer.html" %}
+            <!-- Sidebar content here -->
+            {% include "admin/partials/sidebar.html" %}
 
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        </div>
+    </div>
+     
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </body>
 </html>

@@ -9,9 +9,9 @@
 
 {% if role == 'spare_parts' %}
 <p>Dashboard Ricambi</p>
-{% elif role == 'warehouse' %}
-<p>Dashboard Magazzino</p>
+{% else %}
+<p>Utente non autorizzato</p>
 {% endif %}
 
-<a href="{{ url_for('logout') }}">Esci</a>
+<a href="{{ url_for('auth.logout') }}">Esci</a>
 {% endblock %}

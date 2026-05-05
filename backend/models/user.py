@@ -7,6 +7,6 @@ class Utente:
         self.password = password
 
 utenti = [
-    Utente("Alessio", "", "ciao"),
+    Utente("Alessio", "warehouse", "ciao"),
     Utente("Thomas", "spare_parts", "1234")
 ]
