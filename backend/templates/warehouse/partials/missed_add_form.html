@@ -1,6 +1,13 @@
-<input type="text" placeholder="Type here" name="code" class="input" />
+<!-- templates\warehouse\partials\missed_add_form.html -->
 
-<input
+<form method="post" 
+action="{{ url_for('warehouse.manage_missed_part') }}" 
+class="flex flex-col items-center gap-4 w-full"> <!-- Centra gli elementi del form -->
+
+
+  <input type="text" placeholder="Type here" name="code" class="input" />
+
+  <input
   type="number"
   class="input validator"
   required
@@ -9,5 +16,9 @@
   max="999"
   title="Must be between be 1 to 999"
   name="quantity"
-/>
-<p class="validator-hint">Must be between be 1 to 999</p>
+  />
+  <p class="validator-hint">Must be between be 1 to 999</p>
+
+
+  <button class="btn btn-accent w-full max-w-xs" type="submit">Save</button>
+</form>

@@ -10,8 +10,10 @@
   <!-- 2. CONTENUTO CENTRALE  -->
   <ul class="menu w-full grow overflow-y-auto px-4 py-2">
     <li>
-      <a href="dashboard" class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Homepage">
-        <i class="ri-home-line"></i>
+      <a href="dashboard" 
+      class="{% if title == 'Dashboard' %} menu-active {% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right" 
+      data-tip="Homepage">
+        <i class="ri-home-line"></i> 
         <span class="is-drawer-close:hidden">Homepage</span>
       </a>
     </li>
@@ -20,7 +22,9 @@
     {% if role == 'warehouse' %}
 
     <li>
-      <a href="{{ url_for('warehouse.missed_parts') }}" class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Homepage">
+      <a href="{{ url_for('warehouse.missed_parts') }}" 
+      class="{% if title == 'Missed-Parts' %} menu-active {% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right" 
+      data-tip="Homepage">
         <i class="ri-file-list-3-line"></i>
         <span class="is-drawer-close:hidden">Missed Part</span>
       </a>

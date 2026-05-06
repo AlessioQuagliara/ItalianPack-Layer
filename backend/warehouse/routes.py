@@ -63,10 +63,10 @@ def missed_parts():
         partial_path="warehouse/partials/missed_list.html",
         partial_form_add="warehouse/partials/missed_add_form.html",
         partial_form_delete="warehouse/partials/missed_delete_form.html",
-        action="manage_missed_part"
         )
 
 @warehouse.route("/admin/manage_missed_part", methods=['POST'])
+@session_check(must_role)
 def manage_missed_part():
     if request.method == 'POST':
         code = request.form.get("code")
@@ -74,7 +74,7 @@ def manage_missed_part():
         print(code, quantity)
     return redirect(url_for('warehouse.missed_parts'))
 
-@warehouse.route("admin/settings")
+@warehouse.route("/admin/settings")
 @session_check(must_role)
 def settings():
     title = "Settings"
