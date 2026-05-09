@@ -4,7 +4,7 @@ from flask import Flask, render_template
 from core.config import Config
 
 from spare_parts.routes import spare_parts
-from warehouse.routes import warehouse
+from after_sales.routes import after_sales
 from auth.routes import auth
 
 app = Flask(__name__)
@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 app.register_blueprint(auth)
-app.register_blueprint(warehouse)
+app.register_blueprint(after_sales)
 app.register_blueprint(spare_parts)
 
 @app.route("/")

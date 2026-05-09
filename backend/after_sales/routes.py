@@ -1,16 +1,16 @@
-# warehouse/routes.py
+# after_sales/routes.py
 from flask import render_template, url_for, redirect, session, Blueprint, abort, request
 from functools import wraps
 from models.missing_part import table_datas, columns
 
-warehouse = Blueprint('warehouse', __name__, url_prefix='/warehouse')
+after_sales = Blueprint('after_sales', __name__, url_prefix='/after_sales')
 
-must_role = "warehouse"
+must_role = "after_sales"
 
-@warehouse.route("/")
-def index_warehouse():
+@after_sales.route("/")
+def index_after_sales():
     title = "index"
-    return render_template("warehouse/public.html", title=title)
+    return render_template("after_sales/public.html", title=title)
 
 def session_check(must_role):
     def decorator(f):
@@ -27,7 +27,7 @@ def session_check(must_role):
     return decorator
     
 
-@warehouse.route("/admin/dashboard")
+@after_sales.route("/admin/dashboard")
 @session_check(must_role)
 def dashboard():
     title = "Dashboard"
@@ -35,7 +35,7 @@ def dashboard():
     username = session['username']
     avatar = username[0]
     return render_template(
-        "warehouse/dashboard.html", 
+        "after_sales/dashboard.html", 
         title=title, 
         role=role, 
         username=username, 
@@ -43,7 +43,7 @@ def dashboard():
         )
 
 
-@warehouse.route("/admin/missed_parts")
+@after_sales.route("/admin/missed_parts")
 @session_check(must_role)
 def missed_parts():
     title = "Missed-Parts"
@@ -52,7 +52,7 @@ def missed_parts():
     avatar = username[0]
 
     return render_template(
-        "warehouse/missed_part.html", 
+        "after_sales/missed_part.html", 
         title=title,
         must_role=must_role,
         role=role, 
@@ -60,21 +60,21 @@ def missed_parts():
         avatar=avatar,
         columns=columns,
         table_datas=table_datas,
-        partial_path="warehouse/partials/missed_list.html",
-        partial_form_add="warehouse/partials/missed_add_form.html",
-        partial_form_delete="warehouse/partials/missed_delete_form.html",
+        partial_path="after_sales/partials/missed_list.html",
+        partial_form_add="after_sales/partials/missed_add_form.html",
+        partial_form_delete="after_sales/partials/missed_delete_form.html",
         )
 
-@warehouse.route("/admin/manage_missed_part", methods=['POST'])
+@after_sales.route("/admin/manage_missed_part", methods=['POST'])
 @session_check(must_role)
 def manage_missed_part():
     if request.method == 'POST':
         code = request.form.get("code")
         quantity = request.form.get("quantity")
         print(code, quantity)
-    return redirect(url_for('warehouse.missed_parts'))
+    return redirect(url_for('after_sales.missed_parts'))
 
-@warehouse.route("/admin/settings")
+@after_sales.route("/admin/settings")
 @session_check(must_role)
 def settings():
     title = "Settings"
@@ -82,7 +82,7 @@ def settings():
     username = session['username']
     avatar = username[0]
     return render_template(
-        "warehouse/settings.html", 
+        "after_sales/settings.html", 
         title=title, 
         role=role, 
         username=username,

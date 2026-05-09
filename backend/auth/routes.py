@@ -21,8 +21,8 @@ def login():
                     session['role'] = utente.role
                     if utente.role == 'spare_parts':
                         return redirect(url_for('spare_parts.dashboard'))
-                    elif utente.role == 'warehouse':
-                        return redirect(url_for('warehouse.dashboard'))
+                    elif utente.role == 'after_sales':
+                        return redirect(url_for('after_sales.dashboard'))
                     else:
                         return "Not authorized", 401
 

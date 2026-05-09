@@ -19,10 +19,10 @@
     </li>
 
     <!-- CONTENUTO MAGAZZINO  -->
-    {% if role == 'warehouse' %}
+    {% if role == 'after_sales' %}
 
     <li>
-      <a href="{{ url_for('warehouse.missed_parts') }}" 
+      <a href="{{ url_for('after_sales.missed_parts') }}" 
       class="{% if title == 'Missed-Parts' %} menu-active {% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right" 
       data-tip="Homepage">
         <i class="ri-file-list-3-line"></i>
