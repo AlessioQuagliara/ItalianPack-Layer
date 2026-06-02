@@ -1,6 +1,6 @@
 # main.py
 import click
-from flask import Flask, render_template
+from flask import Flask, render_template, session
 
 from core.config import Config
 from core.db import db, init_db
@@ -26,6 +26,18 @@ def create_app(config=Config):
     app.config.from_object(config)
 
     init_db(app)
+
+    # Context processor: inietta username/role/avatar in TUTTI i template
+    # così i blueprint non devono passarli esplicitamente (pattern dai tuoi routes originali)
+    @app.context_processor
+    def inject_session_vars():
+        if 'username' in session:
+            return {
+                'username': session['username'],
+                'role':     session['role'],
+                'avatar':   session['username'][0].upper(),
+            }
+        return {}
 
     app.register_blueprint(auth)
     app.register_blueprint(admin_bp)
