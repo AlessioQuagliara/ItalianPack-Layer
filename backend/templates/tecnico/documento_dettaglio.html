@@ -1,0 +1,148 @@
+<!-- templates/tecnico/documento_dettaglio.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
+      <span>{{ msg }}</span>
+    </div>
+  {% endfor %}
+{% endwith %}
+
+<!-- Header documento -->
+<div class="card bg-base-100 shadow-sm border border-base-300 mb-4">
+  <div class="card-body p-4">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <div>
+        <h2 class="text-lg font-bold">Documento #{{ doc.id }}</h2>
+        <p class="text-sm text-base-content/60">
+          Ordine: <span class="font-mono">{{ doc.order.panthera_id if doc.order else '—' }}</span>
+          &nbsp;|&nbsp;
+          Stato: <span class="badge badge-sm
+            {% if doc.status == 'open' %}badge-info
+            {% elif doc.status == 'closed' %}badge-success
+            {% else %}badge-warning{% endif %}">{{ doc.status }}</span>
+        </p>
+        {% if doc.description %}
+        <p class="text-sm mt-1">{{ doc.description }}</p>
+        {% endif %}
+      </div>
+      <!-- Azioni principali -->
+      <div class="flex gap-2 flex-wrap">
+        {% if doc.status == 'open' %}
+        <form method="post" action="{{ url_for('tecnico.documento_chiudi', doc_id=doc.id) }}">
+          <button class="btn btn-sm btn-warning">
+            <i class="ri-lock-line"></i> Chiudi documento
+          </button>
+        </form>
+        {% endif %}
+        {% if doc.status in ['closed', 'rda_requested'] %}
+        <button onclick="rda_modal.showModal()" class="btn btn-sm btn-primary"
+          {% if doc.status == 'rda_requested' %}disabled{% endif %}>
+          <i class="ri-recycle-line"></i>
+          {% if doc.status == 'rda_requested' %}RDA già inviata{% else %}Richiedi Reintegro{% endif %}
+        </button>
+        {% endif %}
+        <a href="{{ url_for('tecnico.documenti') }}" class="btn btn-sm btn-ghost">
+          <i class="ri-arrow-left-line"></i> Indietro
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lista materiali usati -->
+<div class="card bg-base-100 shadow-sm border border-base-300 mb-4">
+  <div class="card-body">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-bold"><i class="ri-tools-line mr-1"></i> Materiali utilizzati</h3>
+      {% if doc.status == 'open' %}
+      <button onclick="add_mat_modal.showModal()" class="btn btn-sm btn-outline btn-primary">
+        <i class="ri-add-line"></i> Aggiungi
+      </button>
+      {% endif %}
+    </div>
+
+    {% if materiali %}
+    <div class="overflow-x-auto">
+      <table class="table table-sm table-zebra">
+        <thead>
+          <tr class="bg-base-300">
+            <th>Codice</th>
+            <th>Descrizione</th>
+            <th>Quantità usata</th>
+            {% if doc.status == 'open' %}<th></th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in materiali %}
+          <tr>
+            <td class="font-mono text-sm">{{ m.part_code }}</td>
+            <td class="text-sm">{{ m.description or '—' }}</td>
+            <td>{{ m.quantity_used }}</td>
+            {% if doc.status == 'open' %}
+            <td>
+              <form method="post" action="{{ url_for('tecnico.materiale_elimina', doc_id=doc.id, mat_id=m.id) }}">
+                <button class="btn btn-xs btn-ghost text-error">
+                  <i class="ri-delete-bin-line"></i>
+                </button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-sm text-base-content/50">Nessun materiale aggiunto.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Modale: Aggiungi materiale -->
+{% if doc.status == 'open' %}
+<dialog id="add_mat_modal" class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold text-center">Aggiungi Materiale</h3>
+    <form method="post" action="{{ url_for('tecnico.materiale_aggiungi', doc_id=doc.id) }}" class="flex flex-col gap-3 mt-4">
+      <label class="label">Codice ricambio</label>
+      <input type="text" name="part_code" class="input input-bordered" placeholder="es. YY1M0366" required />
+      <label class="label">Descrizione</label>
+      <input type="text" name="description" class="input input-bordered" placeholder="es. Motore UL" />
+      <label class="label">Quantità usata</label>
+      <input type="number" name="quantity_used" class="input input-bordered" value="1" min="1" required />
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary w-full">Aggiungi</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+{% endif %}
+
+<!-- Modale: Richiedi RDA -->
+{% if doc.status == 'closed' %}
+<dialog id="rda_modal" class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold text-center">Richiesta Reintegro (RDA)</h3>
+    <p class="text-sm text-center text-base-content/60 mt-1">
+      Verranno richiesti {{ materiali|length }} articoli al magazzino.
+    </p>
+    <form method="post" action="{{ url_for('tecnico.richiedi_rda', doc_id=doc.id) }}" class="flex flex-col gap-3 mt-4">
+      <label class="label cursor-pointer justify-start gap-3">
+        <input type="checkbox" name="urgente" class="checkbox checkbox-error" />
+        <span class="label-text font-medium text-error">Richiesta URGENTE</span>
+      </label>
+      <label class="label">Note per il magazzino (opzionale)</label>
+      <textarea name="note" class="textarea textarea-bordered" rows="2" placeholder="Es: necessario entro venerdì..."></textarea>
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary w-full">Invia RDA al magazzino</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+{% endif %}
+
+{% endblock %}

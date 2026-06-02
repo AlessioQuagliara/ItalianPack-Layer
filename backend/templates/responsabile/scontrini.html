@@ -1,0 +1,64 @@
+<!-- templates/responsabile/scontrini.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
+      <span>{{ msg }}</span>
+    </div>
+  {% endfor %}
+{% endwith %}
+
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+  <table class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th>#</th>
+        <th>File</th>
+        <th>Caricato da</th>
+        <th>Stato OCR</th>
+        <th>Fornitore (OCR)</th>
+        <th>Data (OCR)</th>
+        <th>Totale (OCR)</th>
+        <th class="text-right">Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in scontrini %}
+      <tr class="hover:bg-base-200">
+        <td class="text-sm">{{ s.id }}</td>
+        <td class="font-mono text-xs">{{ s.filename }}</td>
+        <td class="text-sm">{{ s.uploaded_by.username if s.uploaded_by else '—' }}</td>
+        <td>
+          <span class="badge badge-sm
+            {% if s.status == 'validated' %}badge-success
+            {% elif s.status == 'rejected' %}badge-error
+            {% elif s.status == 'ocr_done' %}badge-info
+            {% else %}badge-warning{% endif %}">
+            {{ s.status }}
+          </span>
+        </td>
+        <td class="text-sm">{{ s.ocr_supplier or '—' }}</td>
+        <td class="text-sm">{{ s.ocr_date or '—' }}</td>
+        <td class="text-sm">{{ '€ %.2f'|format(s.ocr_total) if s.ocr_total else '—' }}</td>
+        <td class="text-right">
+          {% if s.status == 'ocr_done' %}
+          <form method="post" action="{{ url_for('admin.scontrino_valida', scontrino_id=s.id) }}" class="inline">
+            <button class="btn btn-xs btn-success">Valida</button>
+          </form>
+          <form method="post" action="{{ url_for('admin.scontrino_rifiuta', scontrino_id=s.id) }}" class="inline">
+            <button class="btn btn-xs btn-error">Rifiuta</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="text-center text-base-content/50">Nessuno scontrino.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

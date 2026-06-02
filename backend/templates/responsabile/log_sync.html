@@ -1,0 +1,60 @@
+<!-- templates/responsabile/log_sync.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
+      <span>{{ msg }}</span>
+    </div>
+  {% endfor %}
+{% endwith %}
+
+<div class="flex justify-end mb-4">
+  <form method="post" action="{{ url_for('admin.sync_panthera') }}">
+    <button class="btn btn-primary btn-sm">
+      <i class="ri-refresh-line"></i> Sincronizza Panthera ora
+    </button>
+  </form>
+</div>
+
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+  <table class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th>#</th>
+        <th>Data</th>
+        <th>Stato</th>
+        <th>Importati</th>
+        <th>Aggiornati</th>
+        <th>Errori</th>
+        <th>Messaggio</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in logs %}
+      <tr class="hover:bg-base-200">
+        <td class="text-sm">{{ l.id }}</td>
+        <td class="text-sm">{{ l.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+        <td>
+          <span class="badge badge-sm
+            {% if l.status == 'success' %}badge-success
+            {% elif l.status == 'partial' %}badge-warning
+            {% else %}badge-error{% endif %}">
+            {{ l.status }}
+          </span>
+        </td>
+        <td>{{ l.ordini_importati }}</td>
+        <td>{{ l.ordini_aggiornati }}</td>
+        <td>{{ l.errori }}</td>
+        <td class="text-xs text-base-content/60 max-w-xs truncate">{{ l.messaggio or '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-base-content/50">Nessun log ancora.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,72 @@
+<!-- templates/tecnico/documenti.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
+      <span>{{ msg }}</span>
+    </div>
+  {% endfor %}
+{% endwith %}
+
+{% include 'shared/components/menu_table.html' %}
+<div class="divider">I Miei Documenti</div>
+
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+  <table class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th>#</th>
+        <th>Ordine Panthera</th>
+        <th>Descrizione</th>
+        <th>Stato</th>
+        <th>Creato il</th>
+        <th class="text-right">Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in documenti %}
+      <tr class="hover:bg-base-200">
+        <td class="text-sm">{{ d.id }}</td>
+        <td class="font-mono text-sm">{{ d.order.panthera_id if d.order else '—' }}</td>
+        <td class="text-sm max-w-xs truncate">{{ d.description or '—' }}</td>
+        <td>
+          <span class="badge badge-sm
+            {% if d.status == 'open' %}badge-info
+            {% elif d.status == 'closed' %}badge-success
+            {% else %}badge-warning{% endif %}">
+            {{ d.status }}
+          </span>
+        </td>
+        <td class="text-sm text-base-content/60">{{ d.created_at.strftime('%d/%m/%Y') }}</td>
+        <td class="text-right">
+          <a href="{{ url_for('tecnico.documento_dettaglio', doc_id=d.id) }}" class="btn btn-xs btn-outline">
+            <i class="ri-eye-line"></i> Apri
+          </a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-center text-base-content/50">Nessun documento.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modale: Nuovo documento -->
+<dialog id="create_new_modal" class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold text-center">Nuovo Documento Servizio</h3>
+    <p class="py-2 text-center text-sm">Premi <kbd class="kbd kbd-sm">ESC</kbd> per chiudere</p>
+    <form method="post" action="{{ url_for('tecnico.documento_nuovo') }}" class="flex flex-col gap-3">
+      <label class="label">Descrizione intervento</label>
+      <textarea name="description" class="textarea textarea-bordered" rows="3" placeholder="Es: Sostituzione motore furgone F01..."></textarea>
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary w-full">Crea documento</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{% endblock %}

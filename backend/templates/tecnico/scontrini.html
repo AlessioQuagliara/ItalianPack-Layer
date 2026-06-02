@@ -1,0 +1,74 @@
+<!-- templates/tecnico/scontrini.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
+      <span>{{ msg }}</span>
+    </div>
+  {% endfor %}
+{% endwith %}
+
+<!-- Upload box -->
+<div class="card bg-base-100 shadow-sm border border-base-300 mb-6">
+  <div class="card-body">
+    <h2 class="card-title text-base"><i class="ri-upload-cloud-line mr-1"></i> Carica scontrino</h2>
+    <form method="post" action="{{ url_for('tecnico.scontrino_upload') }}" enctype="multipart/form-data"
+          class="flex flex-col gap-3 mt-2">
+      <input type="file" name="file" accept="image/*,.pdf" class="file-input file-input-bordered w-full" required />
+      <select name="panthera_order_id" class="select select-bordered w-full">
+        <option value="">— Collega a un ordine (opzionale) —</option>
+        {% for o in ordini %}
+        <option value="{{ o.id }}">{{ o.panthera_id }} – {{ o.customer_name or '' }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary w-full sm:w-auto self-start">
+        <i class="ri-upload-line"></i> Carica e avvia OCR
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Lista scontrini -->
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+  <table class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th>#</th>
+        <th>File</th>
+        <th>Stato OCR</th>
+        <th>Fornitore</th>
+        <th>Data</th>
+        <th>Totale</th>
+        <th>Caricato il</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in scontrini %}
+      <tr class="hover:bg-base-200">
+        <td class="text-sm">{{ s.id }}</td>
+        <td class="font-mono text-xs">{{ s.filename }}</td>
+        <td>
+          <span class="badge badge-sm
+            {% if s.status == 'validated' %}badge-success
+            {% elif s.status == 'rejected' %}badge-error
+            {% elif s.status == 'ocr_done' %}badge-info
+            {% else %}badge-warning{% endif %}">
+            {{ s.status }}
+          </span>
+        </td>
+        <td class="text-sm">{{ s.ocr_supplier or '—' }}</td>
+        <td class="text-sm">{{ s.ocr_date or '—' }}</td>
+        <td class="text-sm">{{ '€ %.2f'|format(s.ocr_total) if s.ocr_total else '—' }}</td>
+        <td class="text-sm text-base-content/60">{{ s.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-base-content/50">Nessuno scontrino caricato.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

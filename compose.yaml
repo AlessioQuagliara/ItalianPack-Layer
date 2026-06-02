@@ -1,0 +1,43 @@
+services:
+
+  app:
+    build: ./backend
+    container_name: partflow_app
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8129:8129"   # raggiungibile da LAN su IP:8129
+    environment:
+      FLASK_APP: main.py
+      FLASK_ENV: production
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: postgresql://partflow:${POSTGRES_PASSWORD}@db:5432/partflow
+      PANTHERA_BASE_URL: ${PANTHERA_BASE_URL:-}
+      PANTHERA_API_KEY: ${PANTHERA_API_KEY:-}
+      OCR_ENGINE: ${OCR_ENGINE:-tesseract}
+      GOOGLE_VISION_API_KEY: ${GOOGLE_VISION_API_KEY:-}
+      UPLOAD_FOLDER: /app/uploads
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: partflow_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: partflow
+      POSTGRES_USER: partflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U partflow -d partflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  uploads_data:

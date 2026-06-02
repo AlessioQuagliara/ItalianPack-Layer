@@ -1,72 +1,177 @@
 <aside class="flex h-full flex-col bg-base-200 w-64">
-  
-  <!-- 1. HEADER -->
+
+  <!-- HEADER SIDEBAR -->
   <div class="p-4 font-bold text-xl border-b border-base-300">
     <span class="is-drawer-close:hidden text-dark">
-      <img src="https://www.italianpack.com/wp-content/uploads/2018/08/italian-pack-logo.png" alt="" srcset="">
+      <img src="https://www.italianpack.com/wp-content/uploads/2018/08/italian-pack-logo.png" alt="PartFlow" srcset="">
     </span>
   </div>
 
-  <!-- 2. CONTENUTO CENTRALE  -->
+  <!-- MENU NAVIGAZIONE (ruolo-dipendente) -->
   <ul class="menu w-full grow overflow-y-auto px-4 py-2">
-    <li>
-      <a href="dashboard" 
-      class="{% if title == 'Dashboard' %} menu-active {% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right" 
-      data-tip="Homepage">
-        <i class="ri-home-line"></i> 
-        <span class="is-drawer-close:hidden">Homepage</span>
-      </a>
-    </li>
 
-    <!-- CONTENUTO MAGAZZINO  -->
-    {% if role == 'after_sales' %}
-
-    <li>
-      <a href="{{ url_for('after_sales.missed_parts') }}" 
-      class="{% if title == 'Missed-Parts' %} menu-active {% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right" 
-      data-tip="Homepage">
-        <i class="ri-file-list-3-line"></i>
-        <span class="is-drawer-close:hidden">Missed Part</span>
-      </a>
-    </li>
-
-    {% else %}
-      <p>cannone in giallo</p>
+    <!-- Dashboard: tutti i ruoli -->
+    {% if role == 'admin' %}
+      <li>
+        <a href="{{ url_for('admin.dashboard') }}"
+           class="{% if title == 'Dashboard' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+           data-tip="Dashboard">
+          <i class="ri-home-line"></i>
+          <span class="is-drawer-close:hidden">Dashboard</span>
+        </a>
+      </li>
+    {% elif role == 'tecnico' %}
+      <li>
+        <a href="{{ url_for('tecnico.dashboard') }}"
+           class="{% if title == 'Dashboard' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+           data-tip="Dashboard">
+          <i class="ri-home-line"></i>
+          <span class="is-drawer-close:hidden">Dashboard</span>
+        </a>
+      </li>
+    {% elif role == 'magazzino' %}
+      <li>
+        <a href="{{ url_for('magazzino.dashboard') }}"
+           class="{% if title == 'Dashboard' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+           data-tip="Dashboard">
+          <i class="ri-home-line"></i>
+          <span class="is-drawer-close:hidden">Dashboard</span>
+        </a>
+      </li>
     {% endif %}
 
+    <!-- ── SEZIONE ADMIN ── -->
+    {% if role == 'admin' %}
+    <li class="menu-title is-drawer-close:hidden mt-2"><span>Gestione</span></li>
+
+    <li>
+      <a href="{{ url_for('admin.utenti') }}"
+         class="{% if title == 'Utenti' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Utenti">
+        <i class="ri-team-line"></i>
+        <span class="is-drawer-close:hidden">Utenti</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('admin.ordini') }}"
+         class="{% if title == 'Ordini' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Ordini Panthera">
+        <i class="ri-file-list-3-line"></i>
+        <span class="is-drawer-close:hidden">Ordini Panthera</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('admin.documenti') }}"
+         class="{% if title == 'Documenti di Servizio' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Documenti">
+        <i class="ri-folder-line"></i>
+        <span class="is-drawer-close:hidden">Documenti Servizio</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('admin.rda') }}"
+         class="{% if title == 'RDA – Reintegro' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="RDA">
+        <i class="ri-recycle-line"></i>
+        <span class="is-drawer-close:hidden">RDA – Reintegro</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('admin.scontrini') }}"
+         class="{% if title == 'Scontrini' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Scontrini">
+        <i class="ri-receipt-line"></i>
+        <span class="is-drawer-close:hidden">Scontrini</span>
+      </a>
+    </li>
+
+    <li class="menu-title is-drawer-close:hidden mt-2"><span>Panthera ERP</span></li>
+    <li>
+      <a href="{{ url_for('admin.log_sync') }}"
+         class="{% if title == 'Log Sincronizzazione' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Log Sync">
+        <i class="ri-refresh-line"></i>
+        <span class="is-drawer-close:hidden">Log Sync</span>
+      </a>
+    </li>
+    {% endif %}
+
+    <!-- ── SEZIONE TECNICO ── -->
+    {% if role == 'tecnico' %}
+    <li class="menu-title is-drawer-close:hidden mt-2"><span>Lavoro</span></li>
+
+    <li>
+      <a href="{{ url_for('tecnico.ordini') }}"
+         class="{% if title == 'I Miei Ordini' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Ordini">
+        <i class="ri-file-list-3-line"></i>
+        <span class="is-drawer-close:hidden">I Miei Ordini</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('tecnico.documenti') }}"
+         class="{% if title == 'Documenti Servizio' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Documenti">
+        <i class="ri-folder-line"></i>
+        <span class="is-drawer-close:hidden">Documenti Servizio</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('tecnico.scontrini') }}"
+         class="{% if title == 'Scontrini' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Scontrini">
+        <i class="ri-receipt-line"></i>
+        <span class="is-drawer-close:hidden">Scontrini</span>
+      </a>
+    </li>
+    {% endif %}
+
+    <!-- ── SEZIONE MAGAZZINO ── -->
+    {% if role == 'magazzino' %}
+    <li class="menu-title is-drawer-close:hidden mt-2"><span>Magazzino</span></li>
+
+    <li>
+      <a href="{{ url_for('magazzino.rda') }}"
+         class="{% if title == 'RDA – Reintegro' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="RDA">
+        <i class="ri-recycle-line"></i>
+        <span class="is-drawer-close:hidden">RDA – Reintegro</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('magazzino.articoli_mancanti') }}"
+         class="{% if title == 'Articoli Mancanti' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Mancanti">
+        <i class="ri-alert-line"></i>
+        <span class="is-drawer-close:hidden">Articoli Mancanti</span>
+      </a>
+    </li>
+    {% endif %}
 
   </ul>
 
-  <!-- 3. FOOTER con Dropdown Profilo -->
+  <!-- FOOTER: profilo utente + dropdown -->
   <div class="p-4 border-t border-base-300">
     <div class="dropdown dropdown-top w-full">
-      
-      <!-- Pulsante del Dropdown (Profilo Utente) -->
+
       <div tabindex="0" role="button" class="btn btn-ghost w-full h-auto py-3 px-2 flex items-center justify-start gap-3 hover:bg-base-300 transition-colors">
         <div class="avatar placeholder">
           <div class="bg-neutral text-neutral-content rounded-full w-8">
-            <span class="text-xs">{{avatar}}</span>
+            <span class="text-xs">{{ avatar }}</span>
           </div>
         </div>
         <div class="is-drawer-close:hidden text-left overflow-hidden">
-          <p class="text-sm font-semibold truncate">{{username}}</p>
-          <p class="text-xs opacity-50 truncate">{{role}}</p>
+          <p class="text-sm font-semibold truncate">{{ username }}</p>
+          <p class="text-xs opacity-50 truncate">{{ role }}</p>
         </div>
       </div>
 
-      <!-- Contenuto del Dropdown -->
       <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-56 p-2 shadow-xl mb-2 border border-base-300">
         <li class="menu-title is-drawer-close:hidden"><span>Account</span></li>
-        <li>
-          <a href="settings" class="gap-3">
-            <svg xmlns="http://w3.org" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            Settings
-          </a>
-        </li>
         <div class="divider my-1"></div>
         <li>
           <a href="{{ url_for('auth.logout') }}" class="text-error gap-3">
-            <svg xmlns="http://w3.org" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            <i class="ri-logout-box-r-line"></i>
             Logout
           </a>
         </li>
@@ -74,6 +179,5 @@
 
     </div>
   </div>
-
 
 </aside>

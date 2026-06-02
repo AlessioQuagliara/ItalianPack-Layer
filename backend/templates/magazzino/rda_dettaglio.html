@@ -1,0 +1,114 @@
+<!-- templates/magazzino/rda_dettaglio.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
+      <span>{{ msg }}</span>
+    </div>
+  {% endfor %}
+{% endwith %}
+
+<!-- Header RDA -->
+<div class="card bg-base-100 shadow-sm border {% if rda.is_urgent %}border-error{% else %}border-base-300{% endif %} mb-4">
+  <div class="card-body p-4">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <div>
+        <div class="flex items-center gap-2">
+          <h2 class="text-lg font-bold">RDA #{{ rda.id }}</h2>
+          {% if rda.is_urgent %}
+          <span class="badge badge-error">URGENTE</span>
+          {% endif %}
+          <span class="badge badge-sm
+            {% if rda.status == 'pending' %}badge-warning
+            {% elif rda.status == 'in_preparation' %}badge-info
+            {% elif rda.status == 'ready' %}badge-success
+            {% else %}badge-ghost{% endif %}">
+            {{ rda.status }}
+          </span>
+        </div>
+        <p class="text-sm text-base-content/60 mt-1">
+          Tecnico: <strong>{{ rda.requested_by.username if rda.requested_by else '—' }}</strong>
+          &nbsp;|&nbsp;
+          Furgone: <strong>{{ rda.van.code if rda.van else '—' }}</strong>
+          &nbsp;|&nbsp;
+          Creato: {{ rda.created_at.strftime('%d/%m/%Y %H:%M') }}
+        </p>
+        {% if rda.notes %}
+        <p class="text-sm mt-1 italic">"{{ rda.notes }}"</p>
+        {% endif %}
+      </div>
+
+      <!-- Aggiorna stato -->
+      <form method="post" action="{{ url_for('magazzino.rda_aggiorna_stato', rda_id=rda.id) }}" class="flex gap-2">
+        <select name="status" class="select select-bordered select-sm">
+          {% for s in ['pending', 'in_preparation', 'ready', 'delivered'] %}
+          <option value="{{ s }}" {% if rda.status == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">
+          <i class="ri-save-line"></i> Aggiorna
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Tabella articoli -->
+<div class="card bg-base-100 shadow-sm border border-base-300">
+  <div class="card-body">
+    <h3 class="font-bold mb-3"><i class="ri-list-check mr-1"></i> Articoli richiesti</h3>
+    <div class="overflow-x-auto">
+      <table class="table table-zebra">
+        <thead>
+          <tr class="bg-base-300">
+            <th>Codice</th>
+            <th>Descrizione</th>
+            <th>Richiesti</th>
+            <th>Mancanti</th>
+            <th>Arrivo previsto</th>
+            <th>Note magazzino</th>
+            <th class="text-right">Salva</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr class="hover:bg-base-200">
+            <td class="font-mono text-sm align-top pt-3">{{ item.part_code }}</td>
+            <td class="text-sm align-top pt-3">{{ item.description or '—' }}</td>
+            <td class="align-top pt-3">{{ item.quantity_requested }}</td>
+            <td colspan="4">
+              <form method="post"
+                    action="{{ url_for('magazzino.rda_item_aggiorna', rda_id=rda.id, item_id=item.id) }}"
+                    class="flex flex-wrap gap-2 items-center">
+                <input type="number" name="quantity_missing" value="{{ item.quantity_missing }}"
+                       min="0" class="input input-sm input-bordered w-20" placeholder="0" />
+                <input type="date" name="expected_arrival"
+                       value="{{ item.expected_arrival.strftime('%Y-%m-%d') if item.expected_arrival else '' }}"
+                       class="input input-sm input-bordered" />
+                <input type="text" name="warehouse_notes" value="{{ item.warehouse_notes or '' }}"
+                       class="input input-sm input-bordered flex-1" placeholder="Note..." />
+                <button type="submit" class="btn btn-xs btn-outline btn-primary">
+                  <i class="ri-save-line"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-base-content/50">Nessun articolo.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="mt-4">
+  <a href="{{ url_for('magazzino.rda') }}" class="btn btn-ghost btn-sm">
+    <i class="ri-arrow-left-line"></i> Torna alla lista RDA
+  </a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,62 @@
+<!-- templates/magazzino/articoli_mancanti.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+{% if items %}
+<div class="alert alert-warning mb-4">
+  <i class="ri-alert-line"></i>
+  <span><strong>{{ items|length }}</strong> articoli in attesa di approvvigionamento.</span>
+</div>
+{% endif %}
+
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+  <table class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th>Codice</th>
+        <th>Descrizione</th>
+        <th>Quantità mancante</th>
+        <th>Richiesti da RDA</th>
+        <th>Arrivo previsto</th>
+        <th>Note magazzino</th>
+        <th>Vai a RDA</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr class="hover:bg-base-200 {% if not item.expected_arrival %}bg-warning/5{% endif %}">
+        <td class="font-mono text-sm font-medium">{{ item.part_code }}</td>
+        <td class="text-sm">{{ item.description or '—' }}</td>
+        <td>
+          <span class="badge badge-error badge-sm">{{ item.quantity_missing }}</span>
+        </td>
+        <td class="text-sm">{{ item.quantity_requested }}</td>
+        <td class="text-sm">
+          {% if item.expected_arrival %}
+            {{ item.expected_arrival.strftime('%d/%m/%Y') }}
+          {% else %}
+            <span class="text-warning font-medium">Non definito</span>
+          {% endif %}
+        </td>
+        <td class="text-sm text-base-content/60 max-w-xs truncate">{{ item.warehouse_notes or '—' }}</td>
+        <td>
+          <a href="{{ url_for('magazzino.rda_dettaglio', rda_id=item.reintegration_request_id) }}"
+             class="btn btn-xs btn-outline">
+            RDA #{{ item.reintegration_request_id }}
+          </a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" class="text-center text-base-content/50 py-8">
+          <i class="ri-checkbox-circle-line text-2xl text-success"></i>
+          <p class="mt-2">Nessun articolo mancante. Tutto in ordine.</p>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

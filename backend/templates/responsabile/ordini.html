@@ -1,0 +1,57 @@
+<!-- templates/responsabile/ordini.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+<!-- Filtri stato -->
+<div class="flex gap-2 mb-4 flex-wrap">
+  {% for stato in ['', 'pending', 'in_progress', 'completed', 'cancelled'] %}
+  <a href="{{ url_for('admin.ordini', status=stato) }}"
+     class="btn btn-sm {% if filtro_stato == stato %}btn-primary{% else %}btn-outline{% endif %}">
+    {{ stato if stato else 'Tutti' }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+  <table class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th>ID Panthera</th>
+        <th>Codice</th>
+        <th>Cliente</th>
+        <th>Tipo</th>
+        <th>Stato</th>
+        <th>Data prevista</th>
+        <th>Tecnico</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in ordini %}
+      <tr class="hover:bg-base-200">
+        <td class="font-mono text-sm">{{ o.panthera_id }}</td>
+        <td class="text-sm">{{ o.panthera_code or '—' }}</td>
+        <td>{{ o.customer_name or '—' }}</td>
+        <td class="text-sm">{{ o.order_type or '—' }}</td>
+        <td>
+          <span class="badge badge-sm
+            {% if o.status == 'pending' %}badge-warning
+            {% elif o.status == 'in_progress' %}badge-info
+            {% elif o.status == 'completed' %}badge-success
+            {% else %}badge-ghost{% endif %}">
+            {{ o.status }}
+          </span>
+        </td>
+        <td class="text-sm text-base-content/60">
+          {{ o.scheduled_date.strftime('%d/%m/%Y') if o.scheduled_date else '—' }}
+        </td>
+        <td class="text-sm">{{ o.assigned_user.username if o.assigned_user else '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-base-content/50">Nessun ordine trovato.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

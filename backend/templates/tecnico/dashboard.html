@@ -1,0 +1,86 @@
+<!-- templates/tecnico/dashboard.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Ordini assegnati</p>
+          <p class="text-3xl font-bold mt-1">{{ conteggi.ordini_assegnati }}</p>
+        </div>
+        <i class="ri-file-list-3-line text-3xl text-primary opacity-60"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Documenti aperti</p>
+          <p class="text-3xl font-bold mt-1">{{ conteggi.documenti_aperti }}</p>
+        </div>
+        <i class="ri-folder-open-line text-3xl text-warning opacity-60"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Scontrini in attesa OCR</p>
+          <p class="text-3xl font-bold mt-1">{{ conteggi.scontrini_pendenti }}</p>
+        </div>
+        <i class="ri-receipt-line text-3xl text-info opacity-60"></i>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Prossimi ordini -->
+{% if ultimi_ordini %}
+<div class="card bg-base-100 shadow-sm border border-base-300">
+  <div class="card-body">
+    <h2 class="card-title text-base mb-3"><i class="ri-calendar-line mr-1"></i> Prossimi interventi</h2>
+    <div class="overflow-x-auto">
+      <table class="table table-sm table-zebra">
+        <thead>
+          <tr class="bg-base-300">
+            <th>ID Panthera</th>
+            <th>Cliente</th>
+            <th>Tipo</th>
+            <th>Stato</th>
+            <th>Data prevista</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in ultimi_ordini %}
+          <tr>
+            <td class="font-mono text-xs">{{ o.panthera_id }}</td>
+            <td>{{ o.customer_name or '—' }}</td>
+            <td class="text-xs">{{ o.order_type or '—' }}</td>
+            <td>
+              <span class="badge badge-xs
+                {% if o.status == 'pending' %}badge-warning
+                {% elif o.status == 'in_progress' %}badge-info
+                {% else %}badge-success{% endif %}">
+                {{ o.status }}
+              </span>
+            </td>
+            <td class="text-xs">{{ o.scheduled_date.strftime('%d/%m/%Y') if o.scheduled_date else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

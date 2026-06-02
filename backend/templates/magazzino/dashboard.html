@@ -1,0 +1,99 @@
+<!-- templates/magazzino/dashboard.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">RDA in sospeso</p>
+          <p class="text-3xl font-bold mt-1">{{ conteggi.rda_pending }}</p>
+        </div>
+        <i class="ri-time-line text-3xl text-warning opacity-60"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">In preparazione</p>
+          <p class="text-3xl font-bold mt-1">{{ conteggi.rda_in_prep }}</p>
+        </div>
+        <i class="ri-tools-line text-3xl text-info opacity-60"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300 {% if conteggi.rda_urgenti > 0 %}border-error{% endif %}">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs {% if conteggi.rda_urgenti > 0 %}text-error{% else %}text-base-content/60{% endif %} uppercase tracking-wide">RDA urgenti</p>
+          <p class="text-3xl font-bold mt-1 {% if conteggi.rda_urgenti > 0 %}text-error{% endif %}">{{ conteggi.rda_urgenti }}</p>
+        </div>
+        <i class="ri-alarm-warning-line text-3xl {% if conteggi.rda_urgenti > 0 %}text-error{% else %}text-base-content/30{% endif %}"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Ordini in corso</p>
+          <p class="text-3xl font-bold mt-1">{{ conteggi.ordini_in_corso }}</p>
+        </div>
+        <i class="ri-truck-line text-3xl text-primary opacity-60"></i>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- RDA urgenti in evidenza -->
+{% if rda_urgenti %}
+<div class="card bg-error/10 shadow-sm border border-error/30">
+  <div class="card-body">
+    <h2 class="card-title text-base text-error"><i class="ri-alarm-warning-line mr-1"></i> RDA Urgenti</h2>
+    <div class="overflow-x-auto">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tecnico</th>
+            <th>Furgone</th>
+            <th>Stato</th>
+            <th>Note</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rda_urgenti %}
+          <tr>
+            <td class="font-mono text-sm">{{ r.id }}</td>
+            <td>{{ r.requested_by.username if r.requested_by else '—' }}</td>
+            <td>{{ r.van.code if r.van else '—' }}</td>
+            <td>
+              <span class="badge badge-sm badge-warning">{{ r.status }}</span>
+            </td>
+            <td class="text-xs text-base-content/60 max-w-xs truncate">{{ r.notes or '—' }}</td>
+            <td>
+              <a href="{{ url_for('magazzino.rda_dettaglio', rda_id=r.id) }}" class="btn btn-xs btn-error btn-outline">
+                Gestisci
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

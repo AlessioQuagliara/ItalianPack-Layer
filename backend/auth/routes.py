@@ -1,40 +1,46 @@
 # auth/routes.py
 from flask import render_template, url_for, request, redirect, session, Blueprint
-from models.user import utenti
+
+from models.user import User
 
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
-@auth.route("/login", methods=['GET', 'POST'])
+# Mappa ruolo → blueprint di destinazione dopo il login
+REDIRECT_PER_RUOLO = {
+    'admin':     'admin.dashboard',
+    'tecnico':   'tecnico.dashboard',
+    'magazzino': 'magazzino.dashboard',
+}
+
+
+@auth.route('/login', methods=['GET', 'POST'])
 def login():
-    title = "Login"
+    title = 'Login'
     error = None
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        
-        for utente in utenti:
-            if username == utente.username and password == utente.password:
-                if not utente.username or not utente.role:
-                    pass
-                else:
-                    session['username'] = username
-                    session['role'] = utente.role
-                    if utente.role == 'spare_parts':
-                        return redirect(url_for('spare_parts.dashboard'))
-                    elif utente.role == 'after_sales':
-                        return redirect(url_for('after_sales.dashboard'))
-                    else:
-                        return "Not authorized", 401
 
-                
-        error = "invalid credentials"
-    
-    return render_template("landing/login.html", title=title, error=error)
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
 
+        utente = User.query.filter_by(username=username, is_active=True).first()
+
+        if utente and utente.check_password(password):
+            session['username'] = utente.username
+            session['role']     = utente.role
+            session['user_id']  = utente.id
+
+            destinazione = REDIRECT_PER_RUOLO.get(utente.role)
+            if destinazione:
+                return redirect(url_for(destinazione))
+
+            return 'Ruolo non riconosciuto.', 401
+
+        error = 'Credenziali non valide o utente disattivato.'
+
+    return render_template('landing/login.html', title=title, error=error)
 
 
-@auth.route("/logout")
+@auth.route('/logout')
 def logout():
-    session.pop('username', None)
-    session.pop('role', None)
+    session.clear()
     return redirect(url_for('auth.login'))

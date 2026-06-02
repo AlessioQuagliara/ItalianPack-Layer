@@ -1,0 +1,102 @@
+<!-- templates/magazzino/rda.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
+      <span>{{ msg }}</span>
+    </div>
+  {% endfor %}
+{% endwith %}
+
+<!-- Filtri e azione bulk -->
+<form method="post" action="{{ url_for('magazzino.rda_bulk_stato') }}" id="bulk_form">
+
+  <!-- Filtri stato -->
+  <div class="flex gap-2 mb-4 flex-wrap items-center justify-between">
+    <div class="flex gap-2 flex-wrap">
+      <a href="{{ url_for('magazzino.rda') }}"
+         class="btn btn-sm {% if not filtro %}btn-primary{% else %}btn-outline{% endif %}">Tutti</a>
+      {% for s in stati %}
+      <a href="{{ url_for('magazzino.rda', status=s) }}"
+         class="btn btn-sm {% if filtro == s %}btn-primary{% else %}btn-outline{% endif %}">{{ s }}</a>
+      {% endfor %}
+    </div>
+    <!-- Azione bulk -->
+    <div class="flex gap-2 items-center">
+      <select name="status" class="select select-bordered select-sm">
+        {% for s in stati %}
+        <option value="{{ s }}">→ {{ s }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm btn-primary">
+        <i class="ri-check-double-line"></i> Aggiorna selezionati
+      </button>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+    <table class="table table-zebra">
+      <thead>
+        <tr class="bg-base-300">
+          <th><input type="checkbox" class="checkbox" id="select_all" /></th>
+          <th>#</th>
+          <th>Tecnico</th>
+          <th>Furgone</th>
+          <th>Stato</th>
+          <th>Urgente</th>
+          <th>Creato il</th>
+          <th>Note</th>
+          <th class="text-right">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rda_list %}
+        <tr class="hover:bg-base-200 {% if r.is_urgent %}bg-error/5{% endif %}">
+          <td>
+            <input type="checkbox" name="rda_ids" value="{{ r.id }}" class="checkbox rda_check" />
+          </td>
+          <td class="font-mono text-sm">{{ r.id }}</td>
+          <td>{{ r.requested_by.username if r.requested_by else '—' }}</td>
+          <td class="text-sm">{{ r.van.code if r.van else '—' }}</td>
+          <td>
+            <span class="badge badge-sm
+              {% if r.status == 'pending' %}badge-warning
+              {% elif r.status == 'in_preparation' %}badge-info
+              {% elif r.status == 'ready' %}badge-success
+              {% else %}badge-ghost{% endif %}">
+              {{ r.status }}
+            </span>
+          </td>
+          <td>
+            {% if r.is_urgent %}
+            <span class="badge badge-error badge-sm">URGENTE</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-sm text-base-content/60">{{ r.created_at.strftime('%d/%m/%Y') }}</td>
+          <td class="text-sm text-base-content/60 max-w-xs truncate">{{ r.notes or '—' }}</td>
+          <td class="text-right">
+            <a href="{{ url_for('magazzino.rda_dettaglio', rda_id=r.id) }}" class="btn btn-xs btn-outline">
+              <i class="ri-eye-line"></i> Dettaglio
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-base-content/50">Nessuna RDA.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</form>
+
+<script>
+  // Select/deselect all checkbox
+  document.getElementById('select_all').addEventListener('change', function() {
+    document.querySelectorAll('.rda_check').forEach(cb => cb.checked = this.checked);
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,46 @@
+<!-- templates/responsabile/documenti.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+  <table class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th>#</th>
+        <th>Tecnico</th>
+        <th>Ordine Panthera</th>
+        <th>Stato</th>
+        <th>Descrizione</th>
+        <th>Creato il</th>
+        <th>Chiuso il</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in documenti %}
+      <tr class="hover:bg-base-200">
+        <td class="text-sm">{{ d.id }}</td>
+        <td>{{ d.tecnico.username if d.tecnico else '—' }}</td>
+        <td class="font-mono text-sm">{{ d.order.panthera_id if d.order else '—' }}</td>
+        <td>
+          <span class="badge badge-sm
+            {% if d.status == 'open' %}badge-info
+            {% elif d.status == 'closed' %}badge-success
+            {% else %}badge-warning{% endif %}">
+            {{ d.status }}
+          </span>
+        </td>
+        <td class="text-sm max-w-xs truncate">{{ d.description or '—' }}</td>
+        <td class="text-sm text-base-content/60">{{ d.created_at.strftime('%d/%m/%Y') }}</td>
+        <td class="text-sm text-base-content/60">
+          {{ d.closed_at.strftime('%d/%m/%Y') if d.closed_at else '—' }}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-base-content/50">Nessun documento.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

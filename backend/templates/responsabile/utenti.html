@@ -1,0 +1,94 @@
+<!-- templates/responsabile/utenti.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+<!-- Flash messages -->
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
+      <span>{{ msg }}</span>
+    </div>
+  {% endfor %}
+{% endwith %}
+
+{% include 'shared/components/menu_table.html' %}
+
+<div class="divider">Utenti</div>
+
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+  <table class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th>Username</th>
+        <th>Ruolo</th>
+        <th>Stato</th>
+        <th>Creato il</th>
+        <th class="text-right">Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in utenti %}
+      <tr class="hover:bg-base-200">
+        <td class="font-medium">{{ u.username }}</td>
+        <td>
+          <span class="badge badge-outline
+            {% if u.role == 'admin' %}badge-primary
+            {% elif u.role == 'tecnico' %}badge-info
+            {% else %}badge-warning{% endif %}">
+            {{ u.role }}
+          </span>
+        </td>
+        <td>
+          <span class="badge badge-sm {% if u.is_active %}badge-success{% else %}badge-ghost{% endif %}">
+            {% if u.is_active %}Attivo{% else %}Inattivo{% endif %}
+          </span>
+        </td>
+        <td class="text-sm text-base-content/60">
+          {{ u.created_at.strftime('%d/%m/%Y') if u.created_at else '—' }}
+        </td>
+        <td class="text-right">
+          <form method="post" action="{{ url_for('admin.utenti_toggle', utente_id=u.id) }}" class="inline">
+            <button class="btn btn-xs btn-ghost" title="Attiva/Disattiva">
+              <i class="ri-toggle-line"></i>
+            </button>
+          </form>
+          <form method="post" action="{{ url_for('admin.utenti_elimina', utente_id=u.id) }}" class="inline"
+                onsubmit="return confirm('Eliminare {{ u.username }}?')">
+            <button class="btn btn-xs btn-ghost text-error" title="Elimina">
+              <i class="ri-delete-bin-line"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center text-base-content/50">Nessun utente.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modale: Nuovo utente -->
+<dialog id="create_new_modal" class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold text-center">Nuovo Utente</h3>
+    <p class="py-2 text-center text-sm">Premi <kbd class="kbd kbd-sm">ESC</kbd> per chiudere</p>
+    <form method="post" action="{{ url_for('admin.utenti_nuovo') }}" class="flex flex-col gap-3">
+      <label class="label">Username</label>
+      <input type="text" name="username" class="input input-bordered w-full" required />
+      <label class="label">Password</label>
+      <input type="password" name="password" class="input input-bordered w-full" required />
+      <label class="label">Ruolo</label>
+      <select name="role" class="select select-bordered w-full" required>
+        <option value="admin">Admin</option>
+        <option value="tecnico">Tecnico</option>
+        <option value="magazzino">Magazzino</option>
+      </select>
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary w-full">Crea utente</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{% endblock %}

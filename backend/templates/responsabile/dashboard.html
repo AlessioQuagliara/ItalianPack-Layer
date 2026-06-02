@@ -1,0 +1,110 @@
+<!-- templates/responsabile/dashboard.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+<!-- Statistiche principali -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Ordini aperti</p>
+          <p class="text-3xl font-bold mt-1">{{ conteggi.ordini_aperti }}</p>
+        </div>
+        <i class="ri-file-list-3-line text-3xl text-primary opacity-60"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">RDA in sospeso</p>
+          <p class="text-3xl font-bold mt-1">{{ conteggi.rda_in_sospeso }}</p>
+        </div>
+        <i class="ri-recycle-line text-3xl text-warning opacity-60"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Scontrini OCR</p>
+          <p class="text-3xl font-bold mt-1">{{ conteggi.scontrini_ocr }}</p>
+        </div>
+        <i class="ri-receipt-line text-3xl text-info opacity-60"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Utenti attivi</p>
+          <p class="text-3xl font-bold mt-1">{{ conteggi.utenti_attivi }}</p>
+        </div>
+        <i class="ri-team-line text-3xl text-success opacity-60"></i>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Ultimi log di sincronizzazione -->
+<div class="card bg-base-100 shadow-sm border border-base-300">
+  <div class="card-body">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="card-title text-base"><i class="ri-refresh-line mr-1"></i> Ultima sincronizzazione Panthera</h2>
+      <form method="post" action="{{ url_for('admin.sync_panthera') }}">
+        <button class="btn btn-sm btn-outline btn-primary">
+          <i class="ri-refresh-line"></i> Sincronizza ora
+        </button>
+      </form>
+    </div>
+
+    {% if ultimi_log %}
+    <div class="overflow-x-auto">
+      <table class="table table-sm table-zebra">
+        <thead>
+          <tr class="bg-base-300">
+            <th>Data</th>
+            <th>Stato</th>
+            <th>Importati</th>
+            <th>Aggiornati</th>
+            <th>Errori</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in ultimi_log %}
+          <tr>
+            <td class="text-xs">{{ log.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td>
+              <span class="badge badge-sm
+                {% if log.status == 'success' %}badge-success
+                {% elif log.status == 'partial' %}badge-warning
+                {% else %}badge-error{% endif %}">
+                {{ log.status }}
+              </span>
+            </td>
+            <td>{{ log.ordini_importati }}</td>
+            <td>{{ log.ordini_aggiornati }}</td>
+            <td>{{ log.errori }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-sm text-base-content/50">Nessuna sincronizzazione ancora eseguita.</p>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}
