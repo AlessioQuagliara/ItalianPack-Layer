@@ -43,6 +43,7 @@
 
       <!-- Aggiorna stato -->
       <form method="post" action="{{ url_for('magazzino.rda_aggiorna_stato', rda_id=rda.id) }}" class="flex gap-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <select name="status" class="select select-bordered select-sm">
           {% for s in ['pending', 'in_preparation', 'ready', 'delivered'] %}
           <option value="{{ s }}" {% if rda.status == s %}selected{% endif %}>{{ s }}</option>
@@ -83,6 +84,7 @@
               <form method="post"
                     action="{{ url_for('magazzino.rda_item_aggiorna', rda_id=rda.id, item_id=item.id) }}"
                     class="flex flex-wrap gap-2 items-center">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="number" name="quantity_missing" value="{{ item.quantity_missing }}"
                        min="0" class="input input-sm input-bordered w-20" placeholder="0" />
                 <input type="date" name="expected_arrival"

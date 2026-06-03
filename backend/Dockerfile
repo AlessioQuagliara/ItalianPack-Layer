@@ -18,6 +18,6 @@ COPY . .
 
 RUN mkdir -p uploads && chmod +x docker-entrypoint.sh
 
-EXPOSE 8129
+EXPOSE 9234
 
 ENTRYPOINT ["sh", "docker-entrypoint.sh"]

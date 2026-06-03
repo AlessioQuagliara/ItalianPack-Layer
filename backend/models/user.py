@@ -14,9 +14,9 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     # relationships
-    orders            = db.relationship('PantheraOrder', backref='assigned_user', lazy='dynamic', foreign_keys='PantheraOrder.assigned_user_id')
-    service_documents = db.relationship('ServiceDocument', backref='tecnico', lazy='dynamic', foreign_keys='ServiceDocument.tecnico_user_id')
-    receipts          = db.relationship('Receipt', backref='uploaded_by', lazy='dynamic', foreign_keys='Receipt.uploaded_by_user_id')
+    orders            = db.relationship('PantheraOrder', backref='assigned_user', lazy='select', foreign_keys='PantheraOrder.assigned_user_id')
+    service_documents = db.relationship('ServiceDocument', backref='tecnico', lazy='select', foreign_keys='ServiceDocument.tecnico_user_id')
+    receipts          = db.relationship('Receipt', backref='uploaded_by', lazy='select', foreign_keys='Receipt.uploaded_by_user_id')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

@@ -6,7 +6,7 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
-
+    WTF_CSRF_ENABLED = True
     # PostgreSQL
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "postgresql://partflow:secret@localhost:5432/partflow")
     SQLALCHEMY_TRACK_MODIFICATIONS = False

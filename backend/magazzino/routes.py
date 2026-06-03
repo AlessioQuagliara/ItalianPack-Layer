@@ -1,13 +1,12 @@
 # magazzino/routes.py
-# Blueprint per il ruolo "magazzino"
-from flask import render_template, redirect, url_for, request, flash, Blueprint
+from datetime import datetime
+from flask import render_template, redirect, url_for, request, flash
 
 from core.auth import session_check
 from core.db import db
 from models.reintegration_request import ReintegrationRequest, ReintegrationRequestItem
 from models.panthera_order import PantheraOrder
-
-magazzino_bp = Blueprint('magazzino', __name__, url_prefix='/magazzino')
+from magazzino import magazzino_bp
 
 STATI_RDA_VALIDI = ('pending', 'in_preparation', 'ready', 'delivered')
 
@@ -56,8 +55,8 @@ def rda():
 @magazzino_bp.route('/rda/<int:rda_id>')
 @session_check('magazzino')
 def rda_dettaglio(rda_id):
-    rda   = ReintegrationRequest.query.get_or_404(rda_id)
-    items = rda.items.all()
+    rda   = db.get_or_404(ReintegrationRequest, rda_id)
+    items = rda.items
     return render_template('magazzino/rda_dettaglio.html', title=f'RDA #{rda_id}',
                            rda=rda, items=items)
 
@@ -65,7 +64,7 @@ def rda_dettaglio(rda_id):
 @magazzino_bp.route('/rda/<int:rda_id>/stato', methods=['POST'])
 @session_check('magazzino')
 def rda_aggiorna_stato(rda_id):
-    rda    = ReintegrationRequest.query.get_or_404(rda_id)
+    rda    = db.get_or_404(ReintegrationRequest, rda_id)
     nuovo  = request.form.get('status', '')
     if nuovo not in STATI_RDA_VALIDI:
         flash('Stato non valido.', 'error')
@@ -103,8 +102,8 @@ def rda_bulk_stato():
 @magazzino_bp.route('/rda/<int:rda_id>/item/<int:item_id>', methods=['POST'])
 @session_check('magazzino')
 def rda_item_aggiorna(rda_id, item_id):
-    ReintegrationRequest.query.get_or_404(rda_id)   # verifica che la RDA esista
-    item = ReintegrationRequestItem.query.get_or_404(item_id)
+    db.get_or_404(ReintegrationRequest, rda_id)
+    item = db.get_or_404(ReintegrationRequestItem, item_id)
 
     q_mancante = request.form.get('quantity_missing', '')
     arrivo     = request.form.get('expected_arrival', '')
@@ -113,7 +112,6 @@ def rda_item_aggiorna(rda_id, item_id):
     if q_mancante.isdigit():
         item.quantity_missing = int(q_mancante)
     if arrivo:
-        from datetime import datetime
         try:
             item.expected_arrival = datetime.strptime(arrivo, '%Y-%m-%d')
         except ValueError:

@@ -24,7 +24,7 @@ class PantheraOrder(db.Model):
     updated_at       = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     # relationships
-    service_documents = db.relationship('ServiceDocument', backref='order', lazy='dynamic')
+    service_documents = db.relationship('ServiceDocument', backref='order', lazy='select')
 
     def __repr__(self):
         return f'<PantheraOrder {self.panthera_id} [{self.status}]>'

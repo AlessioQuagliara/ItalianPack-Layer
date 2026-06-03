@@ -60,6 +60,7 @@
     <h3 class="text-lg font-bold text-center">Nuovo Documento Servizio</h3>
     <p class="py-2 text-center text-sm">Premi <kbd class="kbd kbd-sm">ESC</kbd> per chiudere</p>
     <form method="post" action="{{ url_for('tecnico.documento_nuovo') }}" class="flex flex-col gap-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label class="label">Descrizione intervento</label>
       <textarea name="description" class="textarea textarea-bordered" rows="3" placeholder="Es: Sostituzione motore furgone F01..."></textarea>
       <div class="modal-action">

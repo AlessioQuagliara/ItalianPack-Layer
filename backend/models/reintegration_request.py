@@ -7,7 +7,7 @@ class ReintegrationRequest(db.Model):
 
     id                  = db.Column(db.Integer, primary_key=True)
     service_document_id = db.Column(db.Integer, db.ForeignKey('service_documents.id'), nullable=False)
-    van_id              = db.Column(db.Integer, db.ForeignKey('vans.id'), nullable=True)
+    van_id              = db.Column(db.Integer, db.ForeignKey('vans.id'), nullable=True)  # snapshot del furgone al momento della RDA, non derivato dal documento
     requested_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     status              = db.Column(
         db.Enum('pending', 'in_preparation', 'ready', 'delivered', name='rda_status'),
@@ -19,7 +19,7 @@ class ReintegrationRequest(db.Model):
     updated_at          = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     # relationships
-    items           = db.relationship('ReintegrationRequestItem', backref='rda', lazy='dynamic', cascade='all, delete-orphan')
+    items           = db.relationship('ReintegrationRequestItem', backref='rda', lazy='select', cascade='all, delete-orphan')
     requested_by    = db.relationship('User', foreign_keys=[requested_by_user_id])
     van             = db.relationship('Van', foreign_keys=[van_id])
 

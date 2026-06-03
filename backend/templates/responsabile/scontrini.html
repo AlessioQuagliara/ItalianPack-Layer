@@ -46,9 +46,11 @@
         <td class="text-right">
           {% if s.status == 'ocr_done' %}
           <form method="post" action="{{ url_for('admin.scontrino_valida', scontrino_id=s.id) }}" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-xs btn-success">Valida</button>
           </form>
           <form method="post" action="{{ url_for('admin.scontrino_rifiuta', scontrino_id=s.id) }}" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-xs btn-error">Rifiuta</button>
           </form>
           {% endif %}

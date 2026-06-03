@@ -13,6 +13,7 @@
 
 <!-- Filtri e azione bulk -->
 <form method="post" action="{{ url_for('magazzino.rda_bulk_stato') }}" id="bulk_form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
   <!-- Filtri stato -->
   <div class="flex gap-2 mb-4 flex-wrap items-center justify-between">

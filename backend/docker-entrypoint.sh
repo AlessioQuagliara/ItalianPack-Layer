@@ -15,4 +15,4 @@ echo "[entrypoint] Creazione utenti iniziali (salta se esistono già)..."
 flask seed-users
 
 echo "[entrypoint] Avvio gunicorn..."
-exec gunicorn --bind 0.0.0.0:8129 --workers 2 --timeout 60 main:app
+exec gunicorn --bind 0.0.0.0:9234 --workers 2 --timeout 60 main:app

@@ -5,7 +5,7 @@ services:
     container_name: partflow_app
     restart: unless-stopped
     ports:
-      - "0.0.0.0:8129:8129"   # raggiungibile da LAN su IP:8129
+      - "0.0.0.0:9234:9234"   # raggiungibile da LAN su IP:9234
     environment:
       FLASK_APP: main.py
       FLASK_ENV: production

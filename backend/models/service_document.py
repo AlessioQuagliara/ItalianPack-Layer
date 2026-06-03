@@ -20,8 +20,8 @@ class ServiceDocument(db.Model):
     updated_at       = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     # relationships
-    materials             = db.relationship('ServiceDocumentMaterial', backref='document', lazy='dynamic', cascade='all, delete-orphan')
-    reintegration_requests = db.relationship('ReintegrationRequest', backref='service_document', lazy='dynamic')
+    materials             = db.relationship('ServiceDocumentMaterial', backref='document', lazy='select', cascade='all, delete-orphan')
+    reintegration_requests = db.relationship('ReintegrationRequest', backref='service_document', lazy='select')
 
     def __repr__(self):
         return f'<ServiceDocument {self.id} [{self.status}]>'

@@ -17,6 +17,7 @@
     <h2 class="card-title text-base"><i class="ri-upload-cloud-line mr-1"></i> Carica scontrino</h2>
     <form method="post" action="{{ url_for('tecnico.scontrino_upload') }}" enctype="multipart/form-data"
           class="flex flex-col gap-3 mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="file" name="file" accept="image/*,.pdf" class="file-input file-input-bordered w-full" required />
       <select name="panthera_order_id" class="select select-bordered w-full">
         <option value="">— Collega a un ordine (opzionale) —</option>

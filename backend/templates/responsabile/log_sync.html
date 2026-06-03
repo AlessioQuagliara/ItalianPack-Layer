@@ -13,6 +13,7 @@
 
 <div class="flex justify-end mb-4">
   <form method="post" action="{{ url_for('admin.sync_panthera') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button class="btn btn-primary btn-sm">
       <i class="ri-refresh-line"></i> Sincronizza Panthera ora
     </button>
