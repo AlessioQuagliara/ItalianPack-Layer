@@ -1,0 +1,121 @@
+{#
+  Macro: bulk_bar(table_id)
+
+  Renders a sticky bottom action bar that appears when ≥1 row is selected.
+  The caller block defines the specific action buttons/forms for the table.
+
+  Usage:
+    {% from "shared/components/bulk_action_bar.html" import bulk_bar %}
+    {% call bulk_bar('my_table_id') %}
+      <form method="post" action="..." data-bulk>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-xs btn-primary">Azione</button>
+      </form>
+    {% endcall %}
+
+  In the table, mark checkboxes like so:
+    thead: <input type="checkbox" class="checkbox checkbox-sm bulk-select-all">
+    tbody: <input type="checkbox" class="checkbox checkbox-sm bulk-row-check" value="{{ row.id }}">
+
+  Forms inside the bar must have data-bulk attribute: the JS injects
+  <input name="ids[]"> for each checked row before submit.
+#}
+{% macro bulk_bar(table_id) %}
+<div id="bulk_bar_{{ table_id }}"
+     class="fixed bottom-0 inset-x-0 z-50 hidden">
+  <div class="bg-base-300 border-t-2 border-primary/40 shadow-2xl">
+    <div class="px-4 py-2 lg:pl-[17rem] flex items-center gap-2 flex-wrap min-h-[3rem]">
+
+      <div class="flex items-center gap-2 shrink-0">
+        <i class="ri-checkbox-multiple-line text-primary text-base"></i>
+        <span class="text-sm font-semibold whitespace-nowrap"
+              id="bulk_count_{{ table_id }}">0 selezionati</span>
+      </div>
+
+      <div class="hidden sm:block w-px h-5 bg-base-content/20 mx-1"></div>
+
+      <div class="flex items-center gap-2 flex-wrap flex-1">
+        {{ caller() }}
+      </div>
+
+      <button type="button"
+              class="btn btn-xs btn-ghost ml-auto"
+              onclick="bulkClearAll('{{ table_id }}')">
+        <i class="ri-close-line"></i>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* Define shared helpers only once */
+  if (!window._bulkHelpersLoaded) {
+    window._bulkHelpersLoaded = true;
+
+    window.initBulkTable = function (tId) {
+      var tbl     = document.getElementById(tId);
+      var bar     = document.getElementById('bulk_bar_' + tId);
+      var countEl = document.getElementById('bulk_count_' + tId);
+      var selAll  = tbl ? tbl.querySelector('.bulk-select-all') : null;
+
+      if (!tbl) return;
+
+      function getChecked() { return Array.from(tbl.querySelectorAll('.bulk-row-check:checked')); }
+      function getAll()     { return Array.from(tbl.querySelectorAll('.bulk-row-check')); }
+
+      function updateBar() {
+        var n   = getChecked().length;
+        var tot = getAll().length;
+        if (bar)     { bar.classList.toggle('hidden', n === 0); }
+        if (countEl) { countEl.textContent = n + (n === 1 ? ' selezionato' : ' selezionati'); }
+        if (selAll) {
+          selAll.checked       = n > 0 && n === tot;
+          selAll.indeterminate = n > 0 && n < tot;
+        }
+      }
+
+      if (selAll) {
+        selAll.addEventListener('change', function () {
+          getAll().forEach(function (c) { c.checked = selAll.checked; });
+          updateBar();
+        });
+      }
+
+      getAll().forEach(function (c) { c.addEventListener('change', updateBar); });
+
+      if (bar) {
+        bar.querySelectorAll('form[data-bulk]').forEach(function (form) {
+          form.addEventListener('submit', function (e) {
+            var ids = getChecked().map(function (c) { return c.value; });
+            if (!ids.length) { e.preventDefault(); return; }
+            form.querySelectorAll('input[name="ids[]"]').forEach(function (i) { i.remove(); });
+            ids.forEach(function (v) {
+              var inp = document.createElement('input');
+              inp.type = 'hidden'; inp.name = 'ids[]'; inp.value = v;
+              form.appendChild(inp);
+            });
+          });
+        });
+      }
+    };
+
+    window.bulkClearAll = function (tId) {
+      var tbl = document.getElementById(tId);
+      if (tbl) {
+        tbl.querySelectorAll('.bulk-row-check, .bulk-select-all').forEach(function (c) {
+          c.checked = false; c.indeterminate = false;
+        });
+      }
+      var bar = document.getElementById('bulk_bar_' + tId);
+      if (bar) { bar.classList.add('hidden'); }
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initBulkTable('{{ table_id }}');
+  });
+}());
+</script>
+{% endmacro %}

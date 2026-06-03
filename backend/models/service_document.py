@@ -14,6 +14,7 @@ class ServiceDocument(db.Model):
         db.Enum('open', 'closed', 'rda_requested', name='service_doc_status'),
         default='open', nullable=False
     )
+    commessa         = db.Column(db.String(32), nullable=True, index=True)
     notes            = db.Column(db.Text, nullable=True)
     closed_at        = db.Column(db.DateTime, nullable=True)
     created_at       = db.Column(db.DateTime, server_default=db.func.now())

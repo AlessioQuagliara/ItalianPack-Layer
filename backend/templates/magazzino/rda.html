@@ -1,103 +1,180 @@
-<!-- templates/magazzino/rda.html -->
+{% from "shared/components/bulk_action_bar.html" import bulk_bar %}
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% from "shared/macros/badges.html" import status_badge %}
 {% extends "admin/base.html" %}
+
+{% set stato_label = {
+  'pending':        'Da gestire',
+  'in_preparation': 'In preparazione',
+  'ready':          'Pronte',
+  'delivered':      'Consegnate'
+} %}
 
 {% block content %}
 
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
-      <span>{{ msg }}</span>
-    </div>
+{{ breadcrumb([('Magazzino', url_for('magazzino.dashboard')), ('Richieste', none)]) }}
+
+<div class="flex gap-2 mb-4 flex-wrap">
+  <a href="{{ url_for('magazzino.rda') }}"
+     class="btn btn-sm {% if not filtro %}btn-primary{% else %}btn-outline{% endif %}">Tutte</a>
+  {% for s in stati %}
+  <a href="{{ url_for('magazzino.rda', status=s) }}"
+     class="btn btn-sm {% if filtro == s %}btn-primary{% else %}btn-outline{% endif %}">{{ stato_label[s] }}</a>
   {% endfor %}
-{% endwith %}
+</div>
 
-<!-- Filtri e azione bulk -->
-<form method="post" action="{{ url_for('magazzino.rda_bulk_stato') }}" id="bulk_form">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-  <!-- Filtri stato -->
-  <div class="flex gap-2 mb-4 flex-wrap items-center justify-between">
-    <div class="flex gap-2 flex-wrap">
-      <a href="{{ url_for('magazzino.rda') }}"
-         class="btn btn-sm {% if not filtro %}btn-primary{% else %}btn-outline{% endif %}">Tutti</a>
-      {% for s in stati %}
-      <a href="{{ url_for('magazzino.rda', status=s) }}"
-         class="btn btn-sm {% if filtro == s %}btn-primary{% else %}btn-outline{% endif %}">{{ s }}</a>
-      {% endfor %}
-    </div>
-    <!-- Azione bulk -->
-    <div class="flex gap-2 items-center">
-      <select name="status" class="select select-bordered select-sm">
-        {% for s in stati %}
-        <option value="{{ s }}">→ {{ s }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="btn btn-sm btn-primary">
-        <i class="ri-check-double-line"></i> Aggiorna selezionati
-      </button>
-    </div>
-  </div>
-
-  <div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-    <table class="table table-zebra">
-      <thead>
-        <tr class="bg-base-300">
-          <th><input type="checkbox" class="checkbox" id="select_all" /></th>
-          <th>#</th>
-          <th>Tecnico</th>
-          <th>Furgone</th>
-          <th>Stato</th>
-          <th>Urgente</th>
-          <th>Creato il</th>
-          <th>Note</th>
-          <th class="text-right">Azioni</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in rda_list %}
-        <tr class="hover:bg-base-200 {% if r.is_urgent %}bg-error/5{% endif %}">
-          <td>
-            <input type="checkbox" name="rda_ids" value="{{ r.id }}" class="checkbox rda_check" />
-          </td>
-          <td class="font-mono text-sm">{{ r.id }}</td>
-          <td>{{ r.requested_by.username if r.requested_by else '—' }}</td>
-          <td class="text-sm">{{ r.van.code if r.van else '—' }}</td>
-          <td>
-            <span class="badge badge-sm
-              {% if r.status == 'pending' %}badge-warning
-              {% elif r.status == 'in_preparation' %}badge-info
-              {% elif r.status == 'ready' %}badge-success
-              {% else %}badge-ghost{% endif %}">
-              {{ r.status }}
-            </span>
-          </td>
-          <td>
-            {% if r.is_urgent %}
-            <span class="badge badge-error badge-sm">URGENTE</span>
-            {% else %}—{% endif %}
-          </td>
-          <td class="text-sm text-base-content/60">{{ r.created_at.strftime('%d/%m/%Y') }}</td>
-          <td class="text-sm text-base-content/60 max-w-xs truncate">{{ r.notes or '—' }}</td>
-          <td class="text-right">
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+  <table id="tbl_rda_mag" class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th class="w-8"><input type="checkbox" class="checkbox checkbox-sm bulk-select-all"></th>
+        <th>#</th>
+        <th>Furgone</th>
+        <th>Commessa</th>
+        <th>Pezzi richiesti</th>
+        <th>Urgente</th>
+        <th>Stato</th>
+        <th>Data prevista</th>
+        <th class="text-right">Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rda_list %}
+      <tr class="hover:bg-base-200 {% if r.is_urgent %}bg-error/5{% endif %}">
+        <td><input type="checkbox" class="checkbox checkbox-sm bulk-row-check" value="{{ r.id }}"></td>
+        <td class="font-mono text-sm">{{ r.id }}</td>
+        <td class="text-sm">{{ r.van.code if r.van else '—' }}</td>
+        <td class="text-sm">
+          {% set commessa = r.service_document.commessa if r.service_document else none %}
+          {% if commessa %}
+          <span class="badge badge-outline badge-sm font-mono">{{ commessa }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td class="text-sm">
+          <span class="badge badge-outline badge-sm">{{ r.items|length }}</span>
+        </td>
+        <td>
+          {% if r.is_urgent %}<span class="badge badge-error badge-sm">URGENTE</span>{% else %}—{% endif %}
+        </td>
+        <td>{{ status_badge(r.status, 'rda_status_mag') }}</td>
+        <td class="text-sm text-base-content/60">
+          {{ r.expected_arrival.strftime('%d/%m/%Y') if r.expected_arrival else '—' }}
+        </td>
+        <td class="text-right">
+          <div class="flex gap-1 justify-end">
+            <button type="button"
+                    class="btn btn-xs btn-primary"
+                    onclick="apriModaleAggiorna(
+                      {{ r.id }},
+                      '{{ r.status }}',
+                      '{{ r.rda_panthera_date.strftime('%Y-%m-%d') if r.rda_panthera_date else '' }}',
+                      '{{ r.rda_panthera_code or '' }}',
+                      '{{ r.expected_arrival.strftime('%Y-%m-%d') if r.expected_arrival else '' }}',
+                      {{ r.warehouse_notes | tojson if r.warehouse_notes else '""' }}
+                    )">
+              <i class="ri-edit-line"></i> Aggiorna
+            </button>
             <a href="{{ url_for('magazzino.rda_dettaglio', rda_id=r.id) }}" class="btn btn-xs btn-outline">
-              <i class="ri-eye-line"></i> Dettaglio
+              <i class="ri-eye-line"></i>
             </a>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="9" class="text-center text-base-content/50">Nessuna RDA.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9" class="py-16 text-center">
+          <i class="ri-recycle-line text-4xl text-base-content/20 block mb-3"></i>
+          <p class="text-base-content/50 font-medium">Nessuna richiesta presente</p>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
-</form>
+{% call bulk_bar('tbl_rda_mag') %}
+  <form method="post" action="{{ url_for('magazzino.rda_bulk_stato') }}" data-bulk class="flex items-center gap-1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <select name="status" class="select select-xs select-bordered">
+      <option value="pending">Da gestire</option>
+      <option value="in_preparation">In preparazione</option>
+      <option value="ready">Pronta</option>
+      <option value="delivered">Consegnata</option>
+    </select>
+    <button type="submit" class="btn btn-xs btn-primary">
+      <i class="ri-refresh-line"></i> Cambia stato
+    </button>
+  </form>
+{% endcall %}
+
+<!-- Modale aggiorna richiesta (condivisa) -->
+<dialog id="modal_aggiorna" class="modal">
+  <div class="modal-box max-w-md">
+    <h3 class="font-bold text-lg mb-4">
+      <i class="ri-edit-line mr-1"></i> Aggiorna richiesta <span id="modal_rda_id"></span>
+    </h3>
+    <form id="form_aggiorna" method="post" class="flex flex-col gap-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-control">
+        <label class="label"><span class="label-text font-medium">Stato</span></label>
+        <select id="modal_status" name="status" class="select select-bordered select-sm">
+          <option value="pending">Da gestire</option>
+          <option value="in_preparation">In preparazione</option>
+          <option value="ready">Pronta</option>
+          <option value="delivered">Consegnata</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Data RDA Panthera</span></label>
+          <input id="modal_panthera_date" type="date" name="rda_panthera_date"
+                 class="input input-bordered input-sm" />
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Codice RDA Panthera</span></label>
+          <input id="modal_panthera_code" type="text" name="rda_panthera_code"
+                 class="input input-bordered input-sm"
+                 placeholder="es. RDA-2024-001" />
+        </div>
+      </div>
+
+      <div class="form-control">
+        <label class="label"><span class="label-text font-medium">Data prevista arrivo</span></label>
+        <input id="modal_expected_arrival" type="date" name="expected_arrival"
+               class="input input-bordered input-sm" />
+      </div>
+
+      <div class="form-control">
+        <label class="label"><span class="label-text font-medium">Note magazzino</span></label>
+        <textarea id="modal_warehouse_notes" name="warehouse_notes"
+                  class="textarea textarea-bordered textarea-sm" rows="2"
+                  placeholder="Note interne magazzino..."></textarea>
+      </div>
+
+      <div class="modal-action mt-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="ri-save-line"></i> Salva
+        </button>
+        <button type="button" onclick="modal_aggiorna.close()" class="btn btn-ghost">Annulla</button>
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
 
 <script>
-  // Select/deselect all checkbox
-  document.getElementById('select_all').addEventListener('change', function() {
-    document.querySelectorAll('.rda_check').forEach(cb => cb.checked = this.checked);
-  });
+function apriModaleAggiorna(id, status, pantherDate, pantherCode, expectedArrival, warehouseNotes) {
+  document.getElementById('modal_rda_id').textContent = '#' + id;
+  document.getElementById('form_aggiorna').action = '/magazzino/richieste/' + id + '/aggiorna';
+  document.getElementById('modal_status').value = status;
+  document.getElementById('modal_panthera_date').value = pantherDate;
+  document.getElementById('modal_panthera_code').value = pantherCode;
+  document.getElementById('modal_expected_arrival').value = expectedArrival;
+  document.getElementById('modal_warehouse_notes').value = warehouseNotes;
+  document.getElementById('modal_aggiorna').showModal();
+}
 </script>
 
 {% endblock %}

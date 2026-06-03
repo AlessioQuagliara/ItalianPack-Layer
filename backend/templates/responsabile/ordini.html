@@ -1,22 +1,27 @@
-<!-- templates/responsabile/ordini.html -->
+{% from "shared/components/bulk_action_bar.html" import bulk_bar %}
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% from "shared/macros/badges.html" import status_badge %}
 {% extends "admin/base.html" %}
 
 {% block content %}
 
-<!-- Filtri stato -->
+{{ breadcrumb([('Admin', url_for('admin.dashboard')), ('Ordini Panthera', none)]) }}
+
+{% set label_stato = {'': 'Tutti', 'pending': 'In attesa', 'in_progress': 'In corso', 'completed': 'Completato', 'cancelled': 'Annullato'} %}
 <div class="flex gap-2 mb-4 flex-wrap">
   {% for stato in ['', 'pending', 'in_progress', 'completed', 'cancelled'] %}
   <a href="{{ url_for('admin.ordini', status=stato) }}"
      class="btn btn-sm {% if filtro_stato == stato %}btn-primary{% else %}btn-outline{% endif %}">
-    {{ stato if stato else 'Tutti' }}
+    {{ label_stato[stato] }}
   </a>
   {% endfor %}
 </div>
 
 <div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-  <table class="table table-zebra">
+  <table id="tbl_ordini" class="table table-zebra">
     <thead>
       <tr class="bg-base-300">
+        <th class="w-8"><input type="checkbox" class="checkbox checkbox-sm bulk-select-all"></th>
         <th>ID Panthera</th>
         <th>Codice</th>
         <th>Cliente</th>
@@ -24,34 +29,66 @@
         <th>Stato</th>
         <th>Data prevista</th>
         <th>Tecnico</th>
+        <th>Furgone</th>
       </tr>
     </thead>
     <tbody>
       {% for o in ordini %}
       <tr class="hover:bg-base-200">
+        <td><input type="checkbox" class="checkbox checkbox-sm bulk-row-check" value="{{ o.id }}"></td>
         <td class="font-mono text-sm">{{ o.panthera_id }}</td>
         <td class="text-sm">{{ o.panthera_code or '—' }}</td>
         <td>{{ o.customer_name or '—' }}</td>
         <td class="text-sm">{{ o.order_type or '—' }}</td>
-        <td>
-          <span class="badge badge-sm
-            {% if o.status == 'pending' %}badge-warning
-            {% elif o.status == 'in_progress' %}badge-info
-            {% elif o.status == 'completed' %}badge-success
-            {% else %}badge-ghost{% endif %}">
-            {{ o.status }}
-          </span>
-        </td>
+        <td>{{ status_badge(o.status, 'order_status') }}</td>
         <td class="text-sm text-base-content/60">
           {{ o.scheduled_date.strftime('%d/%m/%Y') if o.scheduled_date else '—' }}
         </td>
         <td class="text-sm">{{ o.assigned_user.username if o.assigned_user else '—' }}</td>
+        <td class="text-sm">{{ o.van.code if o.van else '—' }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="text-center text-base-content/50">Nessun ordine trovato.</td></tr>
+      <tr>
+        <td colspan="9" class="py-16 text-center">
+          <i class="ri-file-list-3-line text-4xl text-base-content/20 block mb-3"></i>
+          <p class="text-base-content/50 font-medium">Nessun ordine trovato</p>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+{% call bulk_bar('tbl_ordini') %}
+  <form method="post" action="{{ url_for('admin.ordini_bulk_update') }}" data-bulk class="flex items-center gap-1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="field" value="status">
+    <select name="value" class="select select-xs select-bordered">
+      <option value="pending">In attesa</option>
+      <option value="in_progress">In corso</option>
+      <option value="completed">Completato</option>
+      <option value="cancelled">Annullato</option>
+    </select>
+    <button type="submit" class="btn btn-xs btn-outline"><i class="ri-refresh-line"></i> Stato</button>
+  </form>
+  <form method="post" action="{{ url_for('admin.ordini_bulk_update') }}" data-bulk class="flex items-center gap-1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="field" value="assigned_user_id">
+    <select name="value" class="select select-xs select-bordered">
+      <option value="">— Nessun tecnico —</option>
+      {% for t in tecnici %}<option value="{{ t.id }}">{{ t.username }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-xs btn-outline"><i class="ri-user-line"></i> Assegna</button>
+  </form>
+  <form method="post" action="{{ url_for('admin.ordini_bulk_update') }}" data-bulk class="flex items-center gap-1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="field" value="van_id">
+    <select name="value" class="select select-xs select-bordered">
+      <option value="">— Nessun furgone —</option>
+      {% for f in furgoni %}<option value="{{ f.id }}">{{ f.code }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-xs btn-outline"><i class="ri-truck-line"></i> Furgone</button>
+  </form>
+{% endcall %}
 
 {% endblock %}

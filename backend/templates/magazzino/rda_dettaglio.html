@@ -1,33 +1,27 @@
-<!-- templates/magazzino/rda_dettaglio.html -->
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% from "shared/macros/badges.html" import status_badge %}
 {% extends "admin/base.html" %}
 
 {% block content %}
 
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
-      <span>{{ msg }}</span>
-    </div>
-  {% endfor %}
-{% endwith %}
+{{ breadcrumb([
+  ('Magazzino', url_for('magazzino.dashboard')),
+  ('Richieste', url_for('magazzino.rda')),
+  ('Richiesta #' ~ rda.id, none)
+]) }}
 
-<!-- Header RDA -->
+<!-- Header richiesta -->
 <div class="card bg-base-100 shadow-sm border {% if rda.is_urgent %}border-error{% else %}border-base-300{% endif %} mb-4">
   <div class="card-body p-4">
-    <div class="flex items-center justify-between flex-wrap gap-2">
+    <div class="flex items-start justify-between flex-wrap gap-4">
       <div>
-        <div class="flex items-center gap-2">
-          <h2 class="text-lg font-bold">RDA #{{ rda.id }}</h2>
-          {% if rda.is_urgent %}
-          <span class="badge badge-error">URGENTE</span>
+        <div class="flex items-center gap-2 flex-wrap">
+          <h2 class="text-lg font-bold">Richiesta #{{ rda.id }}</h2>
+          {% if rda.is_urgent %}<span class="badge badge-error">URGENTE</span>{% endif %}
+          {{ status_badge(rda.status, 'rda_status_mag') }}
+          {% if rda.service_document and rda.service_document.commessa %}
+          <span class="badge badge-outline font-mono">{{ rda.service_document.commessa }}</span>
           {% endif %}
-          <span class="badge badge-sm
-            {% if rda.status == 'pending' %}badge-warning
-            {% elif rda.status == 'in_preparation' %}badge-info
-            {% elif rda.status == 'ready' %}badge-success
-            {% else %}badge-ghost{% endif %}">
-            {{ rda.status }}
-          </span>
         </div>
         <p class="text-sm text-base-content/60 mt-1">
           Tecnico: <strong>{{ rda.requested_by.username if rda.requested_by else '—' }}</strong>
@@ -37,23 +31,68 @@
           Creato: {{ rda.created_at.strftime('%d/%m/%Y %H:%M') }}
         </p>
         {% if rda.notes %}
-        <p class="text-sm mt-1 italic">"{{ rda.notes }}"</p>
+        <p class="text-sm mt-1 text-base-content/70 italic">"{{ rda.notes }}"</p>
         {% endif %}
       </div>
-
-      <!-- Aggiorna stato -->
-      <form method="post" action="{{ url_for('magazzino.rda_aggiorna_stato', rda_id=rda.id) }}" class="flex gap-2">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <select name="status" class="select select-bordered select-sm">
-          {% for s in ['pending', 'in_preparation', 'ready', 'delivered'] %}
-          <option value="{{ s }}" {% if rda.status == s %}selected{% endif %}>{{ s }}</option>
-          {% endfor %}
-        </select>
-        <button type="submit" class="btn btn-sm btn-primary">
-          <i class="ri-save-line"></i> Aggiorna
-        </button>
-      </form>
     </div>
+  </div>
+</div>
+
+<!-- Scheda aggiorna richiesta -->
+<div class="card bg-base-100 shadow-sm border border-base-300 mb-4">
+  <div class="card-body p-4">
+    <h3 class="font-bold mb-4"><i class="ri-edit-line mr-1"></i> Aggiorna richiesta</h3>
+    <form method="post" action="{{ url_for('magazzino.richiesta_aggiorna', rda_id=rda.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Stato</span></label>
+          <select name="status" class="select select-bordered select-sm">
+            <option value="pending" {% if rda.status == 'pending' %}selected{% endif %}>Da gestire</option>
+            <option value="in_preparation" {% if rda.status == 'in_preparation' %}selected{% endif %}>In preparazione</option>
+            <option value="ready" {% if rda.status == 'ready' %}selected{% endif %}>Pronta</option>
+            <option value="delivered" {% if rda.status == 'delivered' %}selected{% endif %}>Consegnata</option>
+          </select>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Data prevista arrivo</span></label>
+          <input type="date" name="expected_arrival"
+                 value="{{ rda.expected_arrival.strftime('%Y-%m-%d') if rda.expected_arrival else '' }}"
+                 class="input input-bordered input-sm" />
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Data RDA Panthera</span></label>
+          <input type="date" name="rda_panthera_date"
+                 value="{{ rda.rda_panthera_date.strftime('%Y-%m-%d') if rda.rda_panthera_date else '' }}"
+                 class="input input-bordered input-sm" />
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Codice RDA Panthera</span>
+            <span class="label-text-alt text-base-content/40">opzionale</span>
+          </label>
+          <input type="text" name="rda_panthera_code"
+                 value="{{ rda.rda_panthera_code or '' }}"
+                 class="input input-bordered input-sm"
+                 placeholder="es. RDA-2024-001" />
+        </div>
+
+        <div class="form-control md:col-span-2">
+          <label class="label"><span class="label-text font-medium">Note magazzino</span></label>
+          <textarea name="warehouse_notes" class="textarea textarea-bordered textarea-sm" rows="2"
+                    placeholder="Note interne magazzino...">{{ rda.warehouse_notes or '' }}</textarea>
+        </div>
+
+      </div>
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i class="ri-save-line"></i> Salva aggiornamento
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -69,8 +108,7 @@
             <th>Descrizione</th>
             <th>Richiesti</th>
             <th>Mancanti</th>
-            <th>Arrivo previsto</th>
-            <th>Note magazzino</th>
+            <th>Note articolo</th>
             <th class="text-right">Salva</th>
           </tr>
         </thead>
@@ -80,18 +118,15 @@
             <td class="font-mono text-sm align-top pt-3">{{ item.part_code }}</td>
             <td class="text-sm align-top pt-3">{{ item.description or '—' }}</td>
             <td class="align-top pt-3">{{ item.quantity_requested }}</td>
-            <td colspan="4">
+            <td colspan="3">
               <form method="post"
                     action="{{ url_for('magazzino.rda_item_aggiorna', rda_id=rda.id, item_id=item.id) }}"
                     class="flex flex-wrap gap-2 items-center">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="number" name="quantity_missing" value="{{ item.quantity_missing }}"
-                       min="0" class="input input-sm input-bordered w-20" placeholder="0" />
-                <input type="date" name="expected_arrival"
-                       value="{{ item.expected_arrival.strftime('%Y-%m-%d') if item.expected_arrival else '' }}"
-                       class="input input-sm input-bordered" />
+                       min="0" class="input input-sm input-bordered w-20" />
                 <input type="text" name="warehouse_notes" value="{{ item.warehouse_notes or '' }}"
-                       class="input input-sm input-bordered flex-1" placeholder="Note..." />
+                       class="input input-sm input-bordered flex-1" placeholder="Note articolo..." />
                 <button type="submit" class="btn btn-xs btn-outline btn-primary">
                   <i class="ri-save-line"></i>
                 </button>
@@ -99,7 +134,9 @@
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="7" class="text-center text-base-content/50">Nessun articolo.</td></tr>
+          <tr>
+            <td colspan="6" class="py-8 text-center text-base-content/50">Nessun articolo.</td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
@@ -109,7 +146,7 @@
 
 <div class="mt-4">
   <a href="{{ url_for('magazzino.rda') }}" class="btn btn-ghost btn-sm">
-    <i class="ri-arrow-left-line"></i> Torna alla lista RDA
+    <i class="ri-arrow-left-line"></i> Torna alle richieste
   </a>
 </div>
 

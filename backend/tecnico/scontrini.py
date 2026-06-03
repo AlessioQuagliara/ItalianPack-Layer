@@ -1,7 +1,7 @@
 import os
 
 from werkzeug.utils import secure_filename
-from flask import render_template, redirect, url_for, request, flash, session, current_app
+from flask import render_template, redirect, url_for, request, flash, session, current_app, send_from_directory
 
 from core.auth import session_check
 from core.db import db
@@ -28,6 +28,15 @@ def scontrini():
     ordini = PantheraOrder.query.filter_by(assigned_user_id=uid).all()
     return render_template('tecnico/scontrini.html', title='Scontrini',
                            scontrini=lista, ordini=ordini)
+
+
+@tecnico_bp.route('/scontrini/<int:scontrino_id>/view')
+@session_check('tecnico')
+def scontrino_view(scontrino_id):
+    uid       = session['user_id']
+    scontrino = Receipt.query.filter_by(id=scontrino_id, uploaded_by_user_id=uid).first_or_404()
+    cartella  = os.path.abspath(current_app.config.get('UPLOAD_FOLDER', 'uploads'))
+    return send_from_directory(cartella, scontrino.filename, as_attachment=False)
 
 
 @tecnico_bp.route('/scontrini/upload', methods=['POST'])

@@ -1,7 +1,10 @@
-<!-- templates/tecnico/ordini.html -->
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% from "shared/macros/badges.html" import status_badge %}
 {% extends "admin/base.html" %}
 
 {% block content %}
+
+{{ breadcrumb([('Tecnico', url_for('tecnico.dashboard')), ('I Miei Ordini', none)]) }}
 
 <div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
   <table class="table table-zebra">
@@ -22,19 +25,16 @@
         <td class="text-sm">{{ o.panthera_code or '—' }}</td>
         <td>{{ o.customer_name or '—' }}</td>
         <td class="text-sm">{{ o.order_type or '—' }}</td>
-        <td>
-          <span class="badge badge-sm
-            {% if o.status == 'pending' %}badge-warning
-            {% elif o.status == 'in_progress' %}badge-info
-            {% elif o.status == 'completed' %}badge-success
-            {% else %}badge-ghost{% endif %}">
-            {{ o.status }}
-          </span>
-        </td>
+        <td>{{ status_badge(o.status, 'order_status') }}</td>
         <td class="text-sm">{{ o.scheduled_date.strftime('%d/%m/%Y') if o.scheduled_date else '—' }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="6" class="text-center text-base-content/50">Nessun ordine assegnato.</td></tr>
+      <tr>
+        <td colspan="6" class="py-16 text-center">
+          <i class="ri-file-list-3-line text-4xl text-base-content/20 block mb-3"></i>
+          <p class="text-base-content/50 font-medium">Nessun ordine assegnato</p>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>

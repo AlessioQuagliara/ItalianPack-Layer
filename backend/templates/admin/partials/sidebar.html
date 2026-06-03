@@ -77,6 +77,22 @@
       </a>
     </li>
     <li>
+      <a href="{{ url_for('admin.analisi') }}"
+         class="{% if title == 'Analisi Pezzi' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Analisi Pezzi">
+        <i class="ri-bar-chart-2-line"></i>
+        <span class="is-drawer-close:hidden">Analisi pezzi</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('admin.furgoni') }}"
+         class="{% if title == 'Furgoni' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Furgoni">
+        <i class="ri-truck-line"></i>
+        <span class="is-drawer-close:hidden">Furgoni</span>
+      </a>
+    </li>
+    <li>
       <a href="{{ url_for('admin.scontrini') }}"
          class="{% if title == 'Scontrini' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
          data-tip="Scontrini">
@@ -131,11 +147,19 @@
     <li class="menu-title is-drawer-close:hidden mt-2"><span>Magazzino</span></li>
 
     <li>
+      <a href="{{ url_for('magazzino.analisi') }}"
+         class="{% if title == 'Analisi Pezzi' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Analisi Pezzi">
+        <i class="ri-bar-chart-2-line"></i>
+        <span class="is-drawer-close:hidden">Analisi pezzi</span>
+      </a>
+    </li>
+    <li>
       <a href="{{ url_for('magazzino.rda') }}"
-         class="{% if title == 'RDA – Reintegro' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
-         data-tip="RDA">
+         class="{% if title == 'Richieste' %}menu-active{% endif %} is-drawer-close:tooltip is-drawer-close:tooltip-right"
+         data-tip="Richieste">
         <i class="ri-recycle-line"></i>
-        <span class="is-drawer-close:hidden">RDA – Reintegro</span>
+        <span class="is-drawer-close:hidden">Richieste</span>
       </a>
     </li>
     <li>

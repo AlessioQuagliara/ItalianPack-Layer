@@ -1,0 +1,112 @@
+{#
+  Macro: qr_modal(van)
+
+  Renders a DaisyUI modal with QR code preview and print button.
+  The QR image is fetched from the admin.furgoni_qr endpoint.
+
+  The print mechanism:
+    - A hidden <div> with the QR + label is revealed only during print
+    - JS adds 'qr-printing' class to <body> so CSS hides everything else
+    - afterprint event restores normal state
+
+  Usage:
+    {% from "shared/components/qr_print_modal.html" import qr_modal %}
+    {{ qr_modal(v) }}
+
+  Trigger from outside:
+    <button onclick="document.getElementById('qr_modal_{{ v.id }}').showModal()">QR</button>
+#}
+{% macro qr_modal(van) %}
+{% set modal_id   = 'qr_modal_'   ~ van.id %}
+{% set print_id   = 'qr_print_'   ~ van.id %}
+{% set qr_src     = url_for('admin.furgoni_qr', van_id=van.id) %}
+
+<dialog id="{{ modal_id }}" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box max-w-xs text-center">
+
+    <h3 class="font-bold text-lg mb-1">
+      <i class="ri-qr-code-line mr-1"></i> QR Furgone
+    </h3>
+    <p class="text-sm text-base-content/60 mb-4">
+      {{ van.name }}
+      {% if van.plate_number %} · {{ van.plate_number }}{% endif %}
+    </p>
+
+    <!-- Anteprima QR -->
+    <div class="flex justify-center mb-4">
+      <img src="{{ qr_src }}"
+           alt="QR code furgone {{ van.code }}"
+           class="w-48 h-48 rounded border border-base-300">
+    </div>
+
+    <!-- Nome + codice leggibili sotto il QR -->
+    <p class="font-bold text-lg">{{ van.name }}</p>
+    <p class="font-mono text-base-content/60 text-sm mb-4">{{ van.code }}</p>
+
+    <div class="modal-action justify-center gap-2">
+      <button type="button"
+              class="btn btn-primary btn-sm"
+              onclick="printVanQr('{{ van.id }}')">
+        <i class="ri-printer-line"></i> Stampa
+      </button>
+      <button type="button"
+              class="btn btn-ghost btn-sm"
+              onclick="document.getElementById('{{ modal_id }}').close()">
+        Chiudi
+      </button>
+    </div>
+
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>chiudi</button></form>
+</dialog>
+
+<!-- Area di stampa: visibile solo durante window.print() -->
+<div id="{{ print_id }}" class="hidden">
+  <img src="{{ qr_src }}" alt="QR {{ van.code }}" style="width:200px;height:200px;">
+  <p style="font-size:1.4rem;font-weight:bold;margin-top:.5rem;">{{ van.name }}</p>
+  <p style="font-family:monospace;color:#666;">{{ van.code }}{% if van.plate_number %} · {{ van.plate_number }}{% endif %}</p>
+</div>
+{% endmacro %}
+
+
+{#
+  Print JS + CSS: includi UNA VOLTA nel template che usa qr_modal.
+  Chiama {{ qr_print_assets() }} fuori dal loop, di solito in fondo al block content.
+#}
+{% macro qr_print_assets() %}
+<style>
+@media print {
+  body.qr-printing > *:not(.qr-print-active) {
+    display: none !important;
+  }
+  body.qr-printing .qr-print-active {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    inset: 0;
+    background: white;
+    text-align: center;
+    padding: 2rem;
+  }
+}
+</style>
+<script>
+(function () {
+  window.printVanQr = function (vanId) {
+    var el = document.getElementById('qr_print_' + vanId);
+    if (!el) return;
+    el.classList.add('qr-print-active');
+    document.body.classList.add('qr-printing');
+    window.print();
+  };
+  window.addEventListener('afterprint', function () {
+    document.body.classList.remove('qr-printing');
+    document.querySelectorAll('.qr-print-active').forEach(function (el) {
+      el.classList.remove('qr-print-active');
+    });
+  });
+}());
+</script>
+{% endmacro %}

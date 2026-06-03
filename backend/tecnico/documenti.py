@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 
 from flask import render_template, redirect, url_for, request, flash, session
@@ -7,6 +8,8 @@ from core.db import db
 from models.panthera_order import PantheraOrder
 from models.service_document import ServiceDocument, ServiceDocumentMaterial
 from tecnico import tecnico_bp
+
+_COMMESSA_RE = re.compile(r'^[A-Z]{2,4}\s\d{6}$')
 
 
 @tecnico_bp.route('/documenti')
@@ -23,12 +26,17 @@ def documenti():
 @tecnico_bp.route('/documenti/nuovo', methods=['POST'])
 @session_check('tecnico')
 def documento_nuovo():
-    uid = session['user_id']
+    uid      = session['user_id']
+    commessa = request.form.get('commessa', '').strip().upper()
+    if commessa and not _COMMESSA_RE.match(commessa):
+        flash('Formato commessa non valido (es. EX 000345)', 'error')
+        return redirect(url_for('tecnico.documenti'))
     doc = ServiceDocument(
         tecnico_user_id   = uid,
         panthera_order_id = request.form.get('panthera_order_id') or None,
         van_id            = request.form.get('van_id') or None,
         description       = request.form.get('description', '').strip(),
+        commessa          = commessa or None,
         status            = 'open',
     )
     db.session.add(doc)
@@ -92,3 +100,43 @@ def documento_chiudi(doc_id):
     db.session.commit()
     flash('Documento chiuso.', 'success')
     return redirect(url_for('tecnico.documento_dettaglio', doc_id=doc_id))
+
+
+@tecnico_bp.route('/documenti/<int:doc_id>/commessa', methods=['POST'])
+@session_check('tecnico')
+def documento_aggiorna_commessa(doc_id):
+    uid      = session['user_id']
+    doc      = ServiceDocument.query.filter_by(id=doc_id, tecnico_user_id=uid).first_or_404()
+    commessa = request.form.get('commessa', '').strip().upper()
+    if commessa and not _COMMESSA_RE.match(commessa):
+        flash('Formato commessa non valido (es. EX 000345)', 'error')
+        return redirect(url_for('tecnico.documento_dettaglio', doc_id=doc_id))
+    doc.commessa = commessa or None
+    db.session.commit()
+    flash('Commessa aggiornata.', 'success')
+    return redirect(url_for('tecnico.documento_dettaglio', doc_id=doc_id))
+
+
+@tecnico_bp.route('/documenti/bulk-close', methods=['POST'])
+@session_check('tecnico')
+def documenti_bulk_close():
+    uid     = session['user_id']
+    ids_raw = request.form.getlist('ids[]')
+    if not ids_raw:
+        flash('Nessun documento selezionato.', 'error')
+        return redirect(url_for('tecnico.documenti'))
+
+    ids    = [int(i) for i in ids_raw if i.isdigit()]
+    record = ServiceDocument.query.filter(
+        ServiceDocument.id.in_(ids),
+        ServiceDocument.tecnico_user_id == uid,
+        ServiceDocument.status == 'open'
+    ).all()
+
+    now = datetime.utcnow()
+    for d in record:
+        d.status    = 'closed'
+        d.closed_at = now
+    db.session.commit()
+    flash(f'{len(record)} documenti chiusi.', 'success')
+    return redirect(url_for('tecnico.documenti'))

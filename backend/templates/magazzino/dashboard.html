@@ -9,7 +9,7 @@
     <div class="card-body p-4">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-xs text-base-content/60 uppercase tracking-wide">RDA in sospeso</p>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Richieste da gestire</p>
           <p class="text-3xl font-bold mt-1">{{ conteggi.rda_pending }}</p>
         </div>
         <i class="ri-time-line text-3xl text-warning opacity-60"></i>
@@ -33,7 +33,7 @@
     <div class="card-body p-4">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-xs {% if conteggi.rda_urgenti > 0 %}text-error{% else %}text-base-content/60{% endif %} uppercase tracking-wide">RDA urgenti</p>
+          <p class="text-xs {% if conteggi.rda_urgenti > 0 %}text-error{% else %}text-base-content/60{% endif %} uppercase tracking-wide">Urgenti</p>
           <p class="text-3xl font-bold mt-1 {% if conteggi.rda_urgenti > 0 %}text-error{% endif %}">{{ conteggi.rda_urgenti }}</p>
         </div>
         <i class="ri-alarm-warning-line text-3xl {% if conteggi.rda_urgenti > 0 %}text-error{% else %}text-base-content/30{% endif %}"></i>
@@ -59,7 +59,7 @@
 {% if rda_urgenti %}
 <div class="card bg-error/10 shadow-sm border border-error/30">
   <div class="card-body">
-    <h2 class="card-title text-base text-error"><i class="ri-alarm-warning-line mr-1"></i> RDA Urgenti</h2>
+    <h2 class="card-title text-base text-error"><i class="ri-alarm-warning-line mr-1"></i> Richieste Urgenti</h2>
     <div class="overflow-x-auto">
       <table class="table table-sm">
         <thead>

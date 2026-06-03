@@ -1,0 +1,26 @@
+{#
+  Macro: breadcrumb(items)
+
+  Renders a DaisyUI breadcrumb bar.
+
+  items: list of (label, url) tuples.
+         Last item should have url=none to render as current page.
+
+  Usage:
+    {% from "shared/components/breadcrumb.html" import breadcrumb %}
+    {{ breadcrumb([
+        ('Admin', url_for('admin.dashboard')),
+        ('Furgoni', none),
+    ]) }}
+#}
+{% macro breadcrumb(items) %}
+<div class="breadcrumbs text-sm mb-4">
+  <ul>
+    {% for label, url in items %}
+    <li>
+      {% if url %}<a href="{{ url }}">{{ label }}</a>{% else %}{{ label }}{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endmacro %}

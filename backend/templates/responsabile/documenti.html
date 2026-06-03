@@ -1,13 +1,33 @@
-<!-- templates/responsabile/documenti.html -->
+{% from "shared/components/bulk_action_bar.html" import bulk_bar %}
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% from "shared/macros/badges.html" import status_badge %}
 {% extends "admin/base.html" %}
 
 {% block content %}
 
+{{ breadcrumb([('Admin', url_for('admin.dashboard')), ('Documenti Servizio', none)]) }}
+
+<form method="get" action="{{ url_for('admin.documenti') }}" class="flex gap-2 mb-4">
+  <input type="text" name="commessa" value="{{ filtro_commessa }}"
+         class="input input-sm input-bordered font-mono w-48"
+         placeholder="Filtra per commessa…" />
+  <button type="submit" class="btn btn-sm btn-outline">
+    <i class="ri-search-line"></i> Filtra
+  </button>
+  {% if filtro_commessa %}
+  <a href="{{ url_for('admin.documenti') }}" class="btn btn-sm btn-ghost">
+    <i class="ri-close-line"></i> Cancella
+  </a>
+  {% endif %}
+</form>
+
 <div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-  <table class="table table-zebra">
+  <table id="tbl_documenti" class="table table-zebra">
     <thead>
       <tr class="bg-base-300">
+        <th class="w-8"><input type="checkbox" class="checkbox checkbox-sm bulk-select-all"></th>
         <th>#</th>
+        <th>Commessa</th>
         <th>Tecnico</th>
         <th>Ordine Panthera</th>
         <th>Stato</th>
@@ -19,17 +39,26 @@
     <tbody>
       {% for d in documenti %}
       <tr class="hover:bg-base-200">
+        <td>
+          <input type="checkbox" class="checkbox checkbox-sm bulk-row-check" value="{{ d.id }}"
+                 {% if d.status != 'open' %}disabled{% endif %}>
+        </td>
         <td class="text-sm">{{ d.id }}</td>
+        <td>
+          <div class="flex items-center gap-1">
+            {% if d.commessa %}
+            <span class="badge badge-outline badge-sm font-mono">{{ d.commessa }}</span>
+            {% else %}<span class="text-base-content/40 text-sm">—</span>{% endif %}
+            <button type="button"
+                    onclick="openCommessaModal({{ d.id }}, '{{ d.commessa or '' }}')"
+                    class="btn btn-ghost btn-xs opacity-40 hover:opacity-100">
+              <i class="ri-edit-line"></i>
+            </button>
+          </div>
+        </td>
         <td>{{ d.tecnico.username if d.tecnico else '—' }}</td>
         <td class="font-mono text-sm">{{ d.order.panthera_id if d.order else '—' }}</td>
-        <td>
-          <span class="badge badge-sm
-            {% if d.status == 'open' %}badge-info
-            {% elif d.status == 'closed' %}badge-success
-            {% else %}badge-warning{% endif %}">
-            {{ d.status }}
-          </span>
-        </td>
+        <td>{{ status_badge(d.status, 'doc_status') }}</td>
         <td class="text-sm max-w-xs truncate">{{ d.description or '—' }}</td>
         <td class="text-sm text-base-content/60">{{ d.created_at.strftime('%d/%m/%Y') }}</td>
         <td class="text-sm text-base-content/60">
@@ -37,10 +66,52 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="text-center text-base-content/50">Nessun documento.</td></tr>
+      <tr>
+        <td colspan="9" class="py-16 text-center">
+          <i class="ri-folder-line text-4xl text-base-content/20 block mb-3"></i>
+          <p class="text-base-content/50 font-medium">Nessun documento di servizio</p>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+{% call bulk_bar('tbl_documenti') %}
+  <form method="post" action="{{ url_for('admin.documenti_bulk_close') }}" data-bulk>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-xs btn-success">
+      <i class="ri-checkbox-circle-line"></i> Chiudi selezionati
+    </button>
+  </form>
+{% endcall %}
+
+<!-- Modale edit commessa (condiviso) -->
+<dialog id="commessa_modal" class="modal">
+  <div class="modal-box max-w-sm">
+    <h3 class="font-bold text-lg mb-4">Modifica commessa</h3>
+    <form id="commessa_form" method="post" class="flex flex-col gap-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" id="commessa_input" name="commessa"
+             class="input input-bordered font-mono"
+             placeholder="es. EX 000345"
+             pattern="[A-Z]{2,4}\s[0-9]{6}"
+             title="Formato: 2-4 lettere maiuscole + spazio + 6 cifre" />
+      <p class="text-xs text-base-content/50">Lascia vuoto per rimuovere. Formato: EX 000345</p>
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">Salva</button>
+        <button type="button" onclick="commessa_modal.close()" class="btn btn-ghost">Annulla</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script>
+function openCommessaModal(docId, current) {
+  document.getElementById('commessa_form').action = '/admin/documenti/' + docId + '/commessa';
+  document.getElementById('commessa_input').value = current;
+  document.getElementById('commessa_modal').showModal();
+}
+</script>
 
 {% endblock %}

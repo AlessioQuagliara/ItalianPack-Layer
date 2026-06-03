@@ -1,25 +1,20 @@
-<!-- templates/responsabile/utenti.html -->
+{% from "shared/components/bulk_action_bar.html" import bulk_bar %}
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
 {% extends "admin/base.html" %}
 
 {% block content %}
 
-<!-- Flash messages -->
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
-      <span>{{ msg }}</span>
-    </div>
-  {% endfor %}
-{% endwith %}
+{{ breadcrumb([('Admin', url_for('admin.dashboard')), ('Utenti', none)]) }}
 
 {% include 'shared/components/menu_table.html' %}
 
 <div class="divider">Utenti</div>
 
 <div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-  <table class="table table-zebra">
+  <table id="tbl_utenti" class="table table-zebra">
     <thead>
       <tr class="bg-base-300">
+        <th class="w-8"><input type="checkbox" class="checkbox checkbox-sm bulk-select-all"></th>
         <th>Username</th>
         <th>Ruolo</th>
         <th>Stato</th>
@@ -30,6 +25,10 @@
     <tbody>
       {% for u in utenti %}
       <tr class="hover:bg-base-200">
+        <td>
+          <input type="checkbox" class="checkbox checkbox-sm bulk-row-check" value="{{ u.id }}"
+                 {% if u.id == session.get('user_id') %}disabled title="Account corrente"{% endif %}>
+        </td>
         <td class="font-medium">{{ u.username }}</td>
         <td>
           <span class="badge badge-outline
@@ -64,13 +63,26 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="5" class="text-center text-base-content/50">Nessun utente.</td></tr>
+      <tr>
+        <td colspan="6" class="py-16 text-center">
+          <i class="ri-team-line text-4xl text-base-content/20 block mb-3"></i>
+          <p class="text-base-content/50 font-medium">Nessun utente registrato</p>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 
-<!-- Modale: Nuovo utente -->
+{% call bulk_bar('tbl_utenti') %}
+  <form method="post" action="{{ url_for('admin.utenti_bulk_toggle') }}" data-bulk>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-xs btn-outline">
+      <i class="ri-toggle-line"></i> Attiva/Disattiva
+    </button>
+  </form>
+{% endcall %}
+
 <dialog id="create_new_modal" class="modal">
   <div class="modal-box">
     <h3 class="text-lg font-bold text-center">Nuovo Utente</h3>

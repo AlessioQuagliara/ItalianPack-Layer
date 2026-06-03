@@ -1,45 +1,48 @@
-<!-- templates/responsabile/scontrini.html -->
+{% from "shared/components/bulk_action_bar.html" import bulk_bar %}
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% from "shared/macros/badges.html" import status_badge %}
+{% from "shared/components/receipt_viewer_modal.html" import receipt_modal %}
 {% extends "admin/base.html" %}
 
 {% block content %}
 
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
-      <span>{{ msg }}</span>
-    </div>
-  {% endfor %}
-{% endwith %}
+{{ breadcrumb([('Admin', url_for('admin.dashboard')), ('Scontrini', none)]) }}
 
 <div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-  <table class="table table-zebra">
+  <table id="tbl_scontrini" class="table table-zebra">
     <thead>
       <tr class="bg-base-300">
+        <th class="w-8"><input type="checkbox" class="checkbox checkbox-sm bulk-select-all"></th>
         <th>#</th>
         <th>File</th>
         <th>Caricato da</th>
-        <th>Stato OCR</th>
+        <th>Stato</th>
         <th>Fornitore (OCR)</th>
         <th>Data (OCR)</th>
         <th>Totale (OCR)</th>
-        <th class="text-right">Azioni</th>
+        <th class="text-right">Azioni rapide</th>
       </tr>
     </thead>
     <tbody>
       {% for s in scontrini %}
       <tr class="hover:bg-base-200">
-        <td class="text-sm">{{ s.id }}</td>
-        <td class="font-mono text-xs">{{ s.filename }}</td>
-        <td class="text-sm">{{ s.uploaded_by.username if s.uploaded_by else '—' }}</td>
         <td>
-          <span class="badge badge-sm
-            {% if s.status == 'validated' %}badge-success
-            {% elif s.status == 'rejected' %}badge-error
-            {% elif s.status == 'ocr_done' %}badge-info
-            {% else %}badge-warning{% endif %}">
-            {{ s.status }}
-          </span>
+          <input type="checkbox" class="checkbox checkbox-sm bulk-row-check" value="{{ s.id }}"
+                 {% if s.status != 'ocr_done' %}disabled{% endif %}>
         </td>
+        <td class="text-sm">{{ s.id }}</td>
+        <td>
+          <button type="button"
+                  onclick="document.getElementById('receipt_modal_{{ s.id }}').showModal()"
+                  class="flex items-center gap-1.5 hover:text-primary transition-colors group"
+                  title="Clicca per vedere">
+            <i class="{% if s.filename.lower().endswith('.pdf') %}ri-file-pdf-line text-error{% else %}ri-image-line text-info{% endif %} text-base group-hover:scale-110 transition-transform"></i>
+            <span class="font-mono text-xs truncate max-w-28">{{ s.filename }}</span>
+            <i class="ri-eye-line text-base-content/30 text-xs"></i>
+          </button>
+        </td>
+        <td class="text-sm">{{ s.uploaded_by.username if s.uploaded_by else '—' }}</td>
+        <td>{{ status_badge(s.status, 'receipt_status') }}</td>
         <td class="text-sm">{{ s.ocr_supplier or '—' }}</td>
         <td class="text-sm">{{ s.ocr_date or '—' }}</td>
         <td class="text-sm">{{ '€ %.2f'|format(s.ocr_total) if s.ocr_total else '—' }}</td>
@@ -47,20 +50,62 @@
           {% if s.status == 'ocr_done' %}
           <form method="post" action="{{ url_for('admin.scontrino_valida', scontrino_id=s.id) }}" class="inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-xs btn-success">Valida</button>
+            <button class="btn btn-xs btn-success" title="Valida"><i class="ri-check-line"></i></button>
           </form>
           <form method="post" action="{{ url_for('admin.scontrino_rifiuta', scontrino_id=s.id) }}" class="inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-xs btn-error">Rifiuta</button>
+            <button class="btn btn-xs btn-error" title="Rifiuta"><i class="ri-close-line"></i></button>
           </form>
           {% endif %}
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="8" class="text-center text-base-content/50">Nessuno scontrino.</td></tr>
+      <tr>
+        <td colspan="9" class="py-16 text-center">
+          <i class="ri-receipt-line text-4xl text-base-content/20 block mb-3"></i>
+          <p class="text-base-content/50 font-medium">Nessuno scontrino caricato</p>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+{% for s in scontrini %}
+  {% call receipt_modal(s, 'admin') %}
+    {% if s.status == 'ocr_done' %}
+    <form method="post" action="{{ url_for('admin.scontrino_valida', scontrino_id=s.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-sm btn-success">
+        <i class="ri-checkbox-circle-line"></i> Valida
+      </button>
+    </form>
+    <form method="post" action="{{ url_for('admin.scontrino_rifiuta', scontrino_id=s.id) }}"
+          class="flex items-center gap-1">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" name="note" placeholder="Note rifiuto…" class="input input-sm input-bordered w-44">
+      <button type="submit" class="btn btn-sm btn-error">
+        <i class="ri-close-circle-line"></i> Rifiuta
+      </button>
+    </form>
+    {% endif %}
+  {% endcall %}
+{% endfor %}
+
+{% call bulk_bar('tbl_scontrini') %}
+  <form method="post" action="{{ url_for('admin.scontrini_bulk_validate') }}" data-bulk>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-xs btn-success">
+      <i class="ri-checkbox-circle-line"></i> Valida selezionati
+    </button>
+  </form>
+  <form method="post" action="{{ url_for('admin.scontrini_bulk_reject') }}" data-bulk class="flex items-center gap-1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="note" placeholder="Note rifiuto…" class="input input-xs input-bordered w-40">
+    <button type="submit" class="btn btn-xs btn-error">
+      <i class="ri-close-circle-line"></i> Rifiuta selezionati
+    </button>
+  </form>
+{% endcall %}
 
 {% endblock %}

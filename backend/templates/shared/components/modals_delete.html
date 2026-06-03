@@ -1,21 +1,38 @@
-<!-- templates/shared/components/modals_add.html -->
+{#
+  Componente: modals_delete.html
+
+  Modale di conferma eliminazione riusabile.
+  Imposta le variabili prima dell'include:
+
+    {% set delete_label  = 'nome elemento' %}
+    {% set delete_action = url_for('blueprint.route', id=id) %}
+    {% include 'shared/components/modals_delete.html' %}
+#}
+{% set delete_label  = delete_label  | default('elemento') %}
+{% set delete_action = delete_action | default('#') %}
 
 <dialog id="delete_modal" class="modal">
-  <div class="modal-box text-center"> <!-- Centra tutto il testo nel box -->
-    <h3 class="text-lg font-bold">Are you sure?</h3>
-    <p class="py-4">Press <kbd class="kbd kbd-sm">ESC</kbd> to cancel</p>
+  <div class="modal-box text-center">
+    <h3 class="text-lg font-bold">Sei sicuro?</h3>
+    <p class="py-2 text-sm text-base-content/60">
+      Premi <kbd class="kbd kbd-sm">ESC</kbd> per annullare
+    </p>
 
-    <!-- Alert centrato e con larghezza controllata -->
     <div role="alert" class="alert alert-warning flex justify-center mb-6">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-      <span>Warning: If you delete the content it will no longer be recoverable!</span>
+      <i class="ri-error-warning-line text-xl shrink-0"></i>
+      <span>Stai per eliminare <strong>{{ delete_label }}</strong>. L'operazione non è reversibile.</span>
     </div>
 
-    <!-- Azione centrata -->
-        
-        {% include partial_form_delete %}
-        
+    <form method="post" action="{{ delete_action }}" class="flex justify-center gap-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-error">
+        <i class="ri-delete-bin-line"></i> Elimina
+      </button>
+      <button type="button" class="btn btn-ghost"
+              onclick="document.getElementById('delete_modal').close()">
+        Annulla
+      </button>
+    </form>
   </div>
+  <form method="dialog" class="modal-backdrop"><button>chiudi</button></form>
 </dialog>

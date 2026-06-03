@@ -1,0 +1,100 @@
+{#
+  Macro: receipt_modal(scontrino, role_prefix)
+
+  Renders a DaisyUI modal that previews a receipt file (PDF or image).
+  The optional caller() block injects role-specific action buttons
+  (e.g. Valida / Rifiuta for admin).
+
+  Parameters:
+    scontrino   – Receipt model instance
+    role_prefix – 'admin' | 'tecnico'  (used to build the view URL endpoint)
+
+  Usage (with action buttons):
+    {% call receipt_modal(s, 'admin') %}
+      <form method="post" ...><button>Valida</button></form>
+    {% endcall %}
+
+  Usage (view-only):
+    {{ receipt_modal(s, 'tecnico') }}
+#}
+{% macro receipt_modal(scontrino, role_prefix) %}
+{% set modal_id = 'receipt_modal_' ~ scontrino.id %}
+{% set view_url = url_for(role_prefix ~ '.scontrino_view', scontrino_id=scontrino.id) %}
+{% set is_pdf   = scontrino.filename.lower().endswith('.pdf') %}
+
+<dialog id="{{ modal_id }}" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box w-11/12 max-w-3xl">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <h3 class="font-bold text-base flex items-center gap-2">
+          <i class="{% if is_pdf %}ri-file-pdf-line text-error{% else %}ri-image-line text-info{% endif %}"></i>
+          Scontrino #{{ scontrino.id }}
+        </h3>
+        <p class="text-xs text-base-content/50 mt-0.5 font-mono">{{ scontrino.filename }}</p>
+      </div>
+      <a href="{{ view_url }}" target="_blank"
+         class="btn btn-xs btn-outline gap-1 shrink-0">
+        <i class="ri-external-link-line"></i> Apri in nuova scheda
+      </a>
+    </div>
+
+    <!-- File preview -->
+    <div class="rounded-box border border-base-300 overflow-hidden bg-base-200 flex items-center justify-center min-h-48">
+      {% if is_pdf %}
+      <iframe src="{{ view_url }}"
+              class="w-full h-96"
+              title="Anteprima scontrino {{ scontrino.id }}">
+        <p class="p-4 text-sm">
+          Il tuo browser non supporta l'anteprima PDF.
+          <a href="{{ view_url }}" target="_blank" class="link">Apri il file</a>.
+        </p>
+      </iframe>
+      {% else %}
+      <img src="{{ view_url }}"
+           alt="Scontrino {{ scontrino.id }}"
+           class="max-w-full max-h-96 object-contain p-2">
+      {% endif %}
+    </div>
+
+    <!-- Dati OCR (se disponibili) -->
+    {% if scontrino.ocr_supplier or scontrino.ocr_date or scontrino.ocr_total %}
+    <div class="flex gap-4 flex-wrap mt-3 text-sm">
+      {% if scontrino.ocr_supplier %}
+      <div><span class="text-base-content/50">Fornitore</span>
+           <span class="font-medium ml-1">{{ scontrino.ocr_supplier }}</span></div>
+      {% endif %}
+      {% if scontrino.ocr_date %}
+      <div><span class="text-base-content/50">Data</span>
+           <span class="font-medium ml-1">{{ scontrino.ocr_date }}</span></div>
+      {% endif %}
+      {% if scontrino.ocr_total %}
+      <div><span class="text-base-content/50">Totale</span>
+           <span class="font-medium ml-1">€ {{ '%.2f'|format(scontrino.ocr_total) }}</span></div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Azioni opzionali (caller block) -->
+    {% if caller is defined %}
+    <div class="modal-action mt-4 flex flex-wrap gap-2 justify-end">
+      {{ caller() }}
+      <button type="button" class="btn btn-ghost btn-sm" onclick="{{ modal_id }}.close()">
+        Chiudi
+      </button>
+    </div>
+    {% else %}
+    <div class="modal-action mt-4">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="{{ modal_id }}.close()">
+        Chiudi
+      </button>
+    </div>
+    {% endif %}
+
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>chiudi</button>
+  </form>
+</dialog>
+{% endmacro %}

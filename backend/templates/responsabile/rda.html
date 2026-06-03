@@ -1,12 +1,17 @@
-<!-- templates/responsabile/rda.html -->
+{% from "shared/components/bulk_action_bar.html" import bulk_bar %}
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% from "shared/macros/badges.html" import status_badge %}
 {% extends "admin/base.html" %}
 
 {% block content %}
 
+{{ breadcrumb([('Admin', url_for('admin.dashboard')), ('RDA – Reintegro', none)]) }}
+
 <div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-  <table class="table table-zebra">
+  <table id="tbl_rda" class="table table-zebra">
     <thead>
       <tr class="bg-base-300">
+        <th class="w-8"><input type="checkbox" class="checkbox checkbox-sm bulk-select-all"></th>
         <th>#</th>
         <th>Tecnico</th>
         <th>Furgone</th>
@@ -19,31 +24,39 @@
     <tbody>
       {% for r in rda_list %}
       <tr class="hover:bg-base-200 {% if r.is_urgent %}bg-error/5{% endif %}">
+        <td><input type="checkbox" class="checkbox checkbox-sm bulk-row-check" value="{{ r.id }}"></td>
         <td class="font-mono text-sm">{{ r.id }}</td>
         <td>{{ r.requested_by.username if r.requested_by else '—' }}</td>
         <td class="text-sm">{{ r.van.code if r.van else '—' }}</td>
+        <td>{{ status_badge(r.status, 'rda_status') }}</td>
         <td>
-          <span class="badge badge-sm
-            {% if r.status == 'pending' %}badge-warning
-            {% elif r.status == 'in_preparation' %}badge-info
-            {% elif r.status == 'ready' %}badge-success
-            {% else %}badge-ghost{% endif %}">
-            {{ r.status }}
-          </span>
-        </td>
-        <td>
-          {% if r.is_urgent %}
-          <span class="badge badge-error badge-sm">URGENTE</span>
-          {% else %}—{% endif %}
+          {% if r.is_urgent %}<span class="badge badge-error badge-sm">URGENTE</span>{% else %}—{% endif %}
         </td>
         <td class="text-sm text-base-content/60">{{ r.created_at.strftime('%d/%m/%Y') }}</td>
         <td class="text-sm text-base-content/60 max-w-xs truncate">{{ r.notes or '—' }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="text-center text-base-content/50">Nessuna RDA.</td></tr>
+      <tr>
+        <td colspan="8" class="py-16 text-center">
+          <i class="ri-recycle-line text-4xl text-base-content/20 block mb-3"></i>
+          <p class="text-base-content/50 font-medium">Nessuna RDA presente</p>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+{% call bulk_bar('tbl_rda') %}
+  <form method="post" action="{{ url_for('admin.rda_bulk_update') }}" data-bulk class="flex items-center gap-1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <select name="status" class="select select-xs select-bordered">
+      {% for s in stati %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-xs btn-primary">
+      <i class="ri-refresh-line"></i> Cambia stato
+    </button>
+  </form>
+{% endcall %}
 
 {% endblock %}

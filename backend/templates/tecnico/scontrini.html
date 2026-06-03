@@ -1,17 +1,12 @@
-<!-- templates/tecnico/scontrini.html -->
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% from "shared/macros/badges.html" import status_badge %}
+{% from "shared/components/receipt_viewer_modal.html" import receipt_modal %}
 {% extends "admin/base.html" %}
 
 {% block content %}
 
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
-      <span>{{ msg }}</span>
-    </div>
-  {% endfor %}
-{% endwith %}
+{{ breadcrumb([('Tecnico', url_for('tecnico.dashboard')), ('Scontrini', none)]) }}
 
-<!-- Upload box -->
 <div class="card bg-base-100 shadow-sm border border-base-300 mb-6">
   <div class="card-body">
     <h2 class="card-title text-base"><i class="ri-upload-cloud-line mr-1"></i> Carica scontrino</h2>
@@ -32,14 +27,13 @@
   </div>
 </div>
 
-<!-- Lista scontrini -->
 <div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
   <table class="table table-zebra">
     <thead>
       <tr class="bg-base-300">
         <th>#</th>
         <th>File</th>
-        <th>Stato OCR</th>
+        <th>Stato</th>
         <th>Fornitore</th>
         <th>Data</th>
         <th>Totale</th>
@@ -50,26 +44,36 @@
       {% for s in scontrini %}
       <tr class="hover:bg-base-200">
         <td class="text-sm">{{ s.id }}</td>
-        <td class="font-mono text-xs">{{ s.filename }}</td>
         <td>
-          <span class="badge badge-sm
-            {% if s.status == 'validated' %}badge-success
-            {% elif s.status == 'rejected' %}badge-error
-            {% elif s.status == 'ocr_done' %}badge-info
-            {% else %}badge-warning{% endif %}">
-            {{ s.status }}
-          </span>
+          <button type="button"
+                  onclick="document.getElementById('receipt_modal_{{ s.id }}').showModal()"
+                  class="flex items-center gap-1.5 hover:text-primary transition-colors group"
+                  title="Clicca per vedere">
+            <i class="{% if s.filename.lower().endswith('.pdf') %}ri-file-pdf-line text-error{% else %}ri-image-line text-info{% endif %} text-base group-hover:scale-110 transition-transform"></i>
+            <span class="font-mono text-xs truncate max-w-28">{{ s.filename }}</span>
+            <i class="ri-eye-line text-base-content/30 text-xs"></i>
+          </button>
         </td>
+        <td>{{ status_badge(s.status, 'receipt_status') }}</td>
         <td class="text-sm">{{ s.ocr_supplier or '—' }}</td>
         <td class="text-sm">{{ s.ocr_date or '—' }}</td>
         <td class="text-sm">{{ '€ %.2f'|format(s.ocr_total) if s.ocr_total else '—' }}</td>
         <td class="text-sm text-base-content/60">{{ s.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="text-center text-base-content/50">Nessuno scontrino caricato.</td></tr>
+      <tr>
+        <td colspan="7" class="py-16 text-center">
+          <i class="ri-receipt-line text-4xl text-base-content/20 block mb-3"></i>
+          <p class="text-base-content/50 font-medium">Nessuno scontrino caricato</p>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+{% for s in scontrini %}
+  {{ receipt_modal(s, 'tecnico') }}
+{% endfor %}
 
 {% endblock %}

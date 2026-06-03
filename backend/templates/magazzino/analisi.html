@@ -1,0 +1,310 @@
+{% from "shared/components/bulk_action_bar.html" import bulk_bar %}
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+{{ breadcrumb([('Magazzino', url_for('magazzino.dashboard')), ('Analisi Pezzi', none)]) }}
+
+{# ── FILTRI ──────────────────────────────────────────────────────────────── #}
+<div class="card bg-base-100 shadow-sm border border-base-300 mb-6">
+  <div class="card-body p-4">
+    <form method="get" action="{{ analisi_url }}" id="form_filtri">
+      <div class="flex flex-wrap gap-3 items-end">
+
+        <div class="flex flex-col gap-1">
+          <label class="label text-xs">Periodo</label>
+          <select name="periodo" id="sel_periodo" onchange="toggleDateRange()"
+                  class="select select-sm select-bordered">
+            <option value="7gg"    {% if filtri_raw.periodo == '7gg'   %}selected{% endif %}>Ultimi 7 gg</option>
+            <option value="30gg"   {% if filtri_raw.periodo == '30gg'  %}selected{% endif %}>Ultimi 30 gg</option>
+            <option value="90gg"   {% if filtri_raw.periodo == '90gg'  %}selected{% endif %}>Ultimi 90 gg</option>
+            <option value="anno"   {% if filtri_raw.periodo == 'anno'  %}selected{% endif %}>Anno corrente</option>
+            <option value="custom" {% if filtri_raw.periodo == 'custom'%}selected{% endif %}>Personalizzato</option>
+          </select>
+        </div>
+
+        <div id="range_date" class="{% if filtri_raw.periodo != 'custom' %}hidden{% endif %} flex gap-2">
+          <div class="flex flex-col gap-1">
+            <label class="label text-xs">Dal</label>
+            <input type="date" name="date_from" value="{{ filtri_raw.date_from }}"
+                   class="input input-sm input-bordered" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="label text-xs">Al</label>
+            <input type="date" name="date_to" value="{{ filtri_raw.date_to }}"
+                   class="input input-sm input-bordered" />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="label text-xs">Furgone</label>
+          <select name="van_id" class="select select-sm select-bordered">
+            <option value="">Tutti i furgoni</option>
+            {% for v in vans %}
+            <option value="{{ v.id }}" {% if filtri_raw.van_id == v.id|string %}selected{% endif %}>
+              {{ v.code }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="label text-xs">Commessa</label>
+          <input type="text" name="commessa" value="{{ filtri_raw.commessa }}"
+                 class="input input-sm input-bordered font-mono w-36"
+                 placeholder="es. EX 000345" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="label text-xs">Stato documento</label>
+          <select name="stato_documento" class="select select-sm select-bordered">
+            <option value="closed" {% if filtri_raw.stato_documento == 'closed' %}selected{% endif %}>Solo chiusi</option>
+            <option value="tutti"  {% if filtri_raw.stato_documento == 'tutti'  %}selected{% endif %}>Tutti</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="label text-xs">Top N</label>
+          <select name="top_n" class="select select-sm select-bordered">
+            {% for n in ['10','20','50','all'] %}
+            <option value="{{ n }}" {% if filtri_raw.top_n == n %}selected{% endif %}>
+              {{ 'Tutti' if n == 'all' else n }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="flex gap-2 items-end">
+          <button type="submit" class="btn btn-sm btn-primary">
+            <i class="ri-search-line"></i> Applica
+          </button>
+          <a href="{{ analisi_url }}" class="btn btn-sm btn-ghost">Reset</a>
+          <a href="{{ export_url }}?{{ request.query_string.decode() }}"
+             class="btn btn-sm btn-outline">
+            <i class="ri-download-line"></i> CSV
+          </a>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ── SEZIONE A — KPI ─────────────────────────────────────────────────────── #}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <p class="text-xs text-base-content/60 uppercase tracking-wide">Pezzi distinti</p>
+      <p class="text-3xl font-bold mt-1">{{ kpi.pezzi_distinti }}</p>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <p class="text-xs text-base-content/60 uppercase tracking-wide">Qty totale movimentata</p>
+      <p class="text-3xl font-bold mt-1">{{ kpi.qty_totale }}</p>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <p class="text-xs text-base-content/60 uppercase tracking-wide">Doc. più ricco</p>
+      {% if kpi.doc_top %}
+      <p class="text-lg font-bold mt-1 truncate" title="{{ kpi.doc_top.label }}">
+        {{ kpi.doc_top.label | truncate(28) }}
+      </p>
+      <p class="text-xs text-base-content/50">{{ kpi.doc_top.n_mat }} materiali</p>
+      {% else %}
+      <p class="text-base-content/30 text-sm mt-2">—</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <p class="text-xs text-base-content/60 uppercase tracking-wide">Furgone top consumo</p>
+      {% if kpi.furgone_top %}
+      <p class="text-2xl font-bold mt-1 font-mono">{{ kpi.furgone_top.van_code }}</p>
+      <p class="text-xs text-base-content/50">{{ kpi.furgone_top.qty }} pz</p>
+      {% elif filters.van_id %}
+      <p class="text-sm text-base-content/40 mt-2">Filtro furgone attivo</p>
+      {% else %}
+      <p class="text-base-content/30 text-sm mt-2">—</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{# ── SEZIONE B — TABELLA PEZZI PIÙ RICHIESTI ─────────────────────────────── #}
+{% if risultati %}
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100 mb-6">
+  <table id="tbl_analisi" class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th class="w-8"><input type="checkbox" class="checkbox checkbox-sm bulk-select-all"></th>
+        <th class="w-8">#</th>
+        <th>Codice pezzo</th>
+        <th>Descrizione</th>
+        <th class="text-right">Qty tot</th>
+        <th class="text-right">N° doc</th>
+        <th class="text-right">N° furgoni</th>
+        <th>Ultimo utilizzo</th>
+        <th class="w-8"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in risultati %}
+      <tr class="hover:bg-base-200 cursor-pointer" onclick="toggleBreakdown({{ loop.index0 }})">
+        <td onclick="event.stopPropagation()">
+          <input type="checkbox" class="checkbox checkbox-sm bulk-row-check" value="{{ row.part_code }}">
+        </td>
+        <td class="text-base-content/50 text-sm">{{ loop.index }}</td>
+        <td class="font-mono text-sm font-medium">{{ row.part_code }}</td>
+        <td class="text-sm max-w-xs truncate">{{ row.description }}</td>
+        <td class="text-right font-bold">{{ row.tot_quantita }}</td>
+        <td class="text-right text-sm text-base-content/70">{{ row.n_documenti }}</td>
+        <td class="text-right text-sm text-base-content/70">{{ row.n_furgoni }}</td>
+        <td class="text-sm text-base-content/60">
+          {{ row.ultimo_utilizzo.strftime('%d/%m/%Y') if row.ultimo_utilizzo else '—' }}
+        </td>
+        <td class="text-base-content/30 text-xs select-none">▾</td>
+      </tr>
+      {# Riga accordion — breakdown per furgone e commessa #}
+      <tr id="breakdown_{{ loop.index0 }}" class="hidden">
+        <td colspan="9" class="bg-base-200/60 px-8 py-4">
+          <div class="flex flex-wrap gap-8">
+
+            {# Breakdown per furgone #}
+            <div>
+              <p class="text-xs font-semibold text-base-content/50 uppercase mb-2">Per furgone</p>
+              {% if van_breakdown.get(row.part_code) %}
+              <div class="flex flex-col gap-1">
+                {% for b in van_breakdown[row.part_code] %}
+                <div class="flex items-center gap-2 text-sm">
+                  <span class="font-mono text-base-content/70 w-20">{{ b.van_code }}</span>
+                  <span class="font-bold">{{ b.qty }} pz</span>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <p class="text-sm text-base-content/30">—</p>
+              {% endif %}
+            </div>
+
+            {# Breakdown per commessa #}
+            {% if com_breakdown.get(row.part_code) %}
+            <div>
+              <p class="text-xs font-semibold text-base-content/50 uppercase mb-2">Per commessa</p>
+              <div class="flex flex-col gap-1">
+                {% for c in com_breakdown[row.part_code] %}
+                <div class="flex items-center gap-2 text-sm">
+                  <span class="font-mono badge badge-outline badge-sm">{{ c.commessa }}</span>
+                  <span class="font-bold">{{ c.qty }} pz</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% call bulk_bar('tbl_analisi') %}
+  <form method="post" action="{{ export_selected_url }}" data-bulk>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="periodo" value="{{ filtri_raw.periodo }}">
+    <input type="hidden" name="van_id" value="{{ filtri_raw.van_id }}">
+    <input type="hidden" name="commessa" value="{{ filtri_raw.commessa }}">
+    <input type="hidden" name="stato_documento" value="{{ filtri_raw.stato_documento }}">
+    <input type="hidden" name="date_from" value="{{ filtri_raw.date_from }}">
+    <input type="hidden" name="date_to" value="{{ filtri_raw.date_to }}">
+    <button type="submit" class="btn btn-xs btn-outline">
+      <i class="ri-download-line"></i> Esporta selezionati CSV
+    </button>
+  </form>
+{% endcall %}
+
+{% else %}
+<div class="card bg-base-100 shadow-sm border border-base-300 mb-6">
+  <div class="card-body py-16 text-center">
+    <i class="ri-bar-chart-2-line text-4xl text-base-content/20 block mb-3"></i>
+    <p class="text-base-content/50 font-medium">Nessun dato disponibile per i filtri selezionati</p>
+    <p class="text-sm text-base-content/40 mt-1">Prova ad allargare il periodo o modificare i filtri</p>
+  </div>
+</div>
+{% endif %}
+
+{# ── SEZIONE C — TOP 5 FURGONI ───────────────────────────────────────────── #}
+{% if top_furgoni %}
+<div class="card bg-base-100 shadow-sm border border-base-300 mb-6">
+  <div class="card-body">
+    <h3 class="font-bold mb-3">
+      <i class="ri-truck-line mr-1"></i> Top 5 furgoni per consumo
+    </h3>
+    <div class="overflow-x-auto">
+      <table class="table table-sm table-zebra">
+        <thead>
+          <tr class="bg-base-300">
+            <th>Furgone</th>
+            <th class="text-right">Qty tot</th>
+            <th class="text-right">Pezzi distinti</th>
+            <th class="text-right">Documenti chiusi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in top_furgoni %}
+          <tr class="hover:bg-base-200">
+            <td class="font-mono font-medium">{{ f.van_code }}</td>
+            <td class="text-right font-bold">{{ f.qty_tot }}</td>
+            <td class="text-right text-sm text-base-content/70">{{ f.pezzi_distinti }}</td>
+            <td class="text-right text-sm text-base-content/70">{{ f.n_documenti }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── SEZIONE D — ANDAMENTO NEL TEMPO ─────────────────────────────────────── #}
+{% if andamento %}
+<div class="card bg-base-100 shadow-sm border border-base-300 mb-6">
+  <div class="card-body">
+    <h3 class="font-bold mb-4">
+      <i class="ri-line-chart-line mr-1"></i> Andamento nel tempo
+    </h3>
+    <div class="flex flex-col gap-3">
+      {% for row in andamento %}
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-base-content/60 w-40 shrink-0">{{ row.label }}</span>
+        <div class="flex-1 bg-base-200 rounded-full h-2">
+          <div style="width: {{ row.pct }}%; background: var(--color-primary); height: 8px; border-radius: 4px;"></div>
+        </div>
+        <span class="text-sm font-bold w-16 text-right shrink-0">{{ row.qty }} pz</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+function toggleBreakdown(i) {
+  document.getElementById('breakdown_' + i).classList.toggle('hidden');
+}
+function toggleDateRange() {
+  const v = document.getElementById('sel_periodo').value;
+  document.getElementById('range_date').classList.toggle('hidden', v !== 'custom');
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,55 @@
+{#
+  Macro: status_badge(status, tipo)
+
+  Renders a DaisyUI badge with the correct color and Italian label
+  for a given status enum value.
+
+  tipo values:
+    order_status  → PantheraOrder.status
+    doc_status    → ServiceDocument.status
+    rda_status    → ReintegrationRequest.status
+    receipt_status → Receipt.status
+
+  Usage:
+    {% from "shared/macros/badges.html" import status_badge %}
+    {{ status_badge(order.status, 'order_status') }}
+#}
+{% macro status_badge(status, tipo) %}
+{%- if tipo == 'order_status' -%}
+  {%- if status == 'pending' -%}<span class="badge badge-sm badge-warning">In attesa</span>
+  {%- elif status == 'in_progress' -%}<span class="badge badge-sm badge-info">In corso</span>
+  {%- elif status == 'completed' -%}<span class="badge badge-sm badge-success">Completato</span>
+  {%- elif status == 'cancelled' -%}<span class="badge badge-sm badge-ghost">Annullato</span>
+  {%- else -%}<span class="badge badge-sm badge-ghost">{{ status }}</span>
+  {%- endif -%}
+{%- elif tipo == 'doc_status' -%}
+  {%- if status == 'open' -%}<span class="badge badge-sm badge-info">Aperto</span>
+  {%- elif status == 'closed' -%}<span class="badge badge-sm badge-success">Chiuso</span>
+  {%- elif status == 'rda_requested' -%}<span class="badge badge-sm badge-warning">RDA inviata</span>
+  {%- else -%}<span class="badge badge-sm badge-ghost">{{ status }}</span>
+  {%- endif -%}
+{%- elif tipo == 'rda_status' -%}
+  {%- if status == 'pending' -%}<span class="badge badge-sm badge-warning">In attesa</span>
+  {%- elif status == 'in_preparation' -%}<span class="badge badge-sm badge-info">In preparazione</span>
+  {%- elif status == 'ready' -%}<span class="badge badge-sm badge-success">Pronto</span>
+  {%- elif status == 'delivered' -%}<span class="badge badge-sm badge-ghost">Consegnato</span>
+  {%- else -%}<span class="badge badge-sm badge-ghost">{{ status }}</span>
+  {%- endif -%}
+{%- elif tipo == 'rda_status_mag' -%}
+  {%- if status == 'pending' -%}<span class="badge badge-sm badge-warning">Da gestire</span>
+  {%- elif status == 'in_preparation' -%}<span class="badge badge-sm badge-info">In preparazione</span>
+  {%- elif status == 'ready' -%}<span class="badge badge-sm badge-success">Pronta</span>
+  {%- elif status == 'delivered' -%}<span class="badge badge-sm badge-ghost">Consegnata</span>
+  {%- else -%}<span class="badge badge-sm badge-ghost">{{ status }}</span>
+  {%- endif -%}
+{%- elif tipo == 'receipt_status' -%}
+  {%- if status == 'pending_ocr' -%}<span class="badge badge-sm badge-warning">In attesa OCR</span>
+  {%- elif status == 'ocr_done' -%}<span class="badge badge-sm badge-info">OCR completato</span>
+  {%- elif status == 'validated' -%}<span class="badge badge-sm badge-success">Validato</span>
+  {%- elif status == 'rejected' -%}<span class="badge badge-sm badge-error">Rifiutato</span>
+  {%- else -%}<span class="badge badge-sm badge-ghost">{{ status }}</span>
+  {%- endif -%}
+{%- else -%}
+  <span class="badge badge-sm badge-ghost">{{ status }}</span>
+{%- endif %}
+{% endmacro %}

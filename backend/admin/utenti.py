@@ -54,7 +54,39 @@ def utenti_elimina(utente_id):
     if utente.id == session.get('user_id'):
         flash('Non puoi eliminare il tuo account.', 'error')
         return redirect(url_for('admin.utenti'))
+
+    n_ordini   = len(utente.orders)
+    n_docs     = len(utente.service_documents)
+    n_receipts = len(utente.receipts)
+
+    if n_ordini + n_docs + n_receipts > 0:
+        flash(
+            f'Impossibile eliminare {utente.username}: '
+            f'esistono {n_ordini} ordini, {n_docs} documenti e {n_receipts} scontrini associati. '
+            f'Usa Disattiva per bloccare l\'accesso senza perdere i dati.',
+            'error'
+        )
+        return redirect(url_for('admin.utenti'))
+
     db.session.delete(utente)
     db.session.commit()
-    flash('Utente eliminato.', 'success')
+    flash(f'Utente {utente.username} eliminato.', 'success')
+    return redirect(url_for('admin.utenti'))
+
+
+@admin_bp.route('/utenti/bulk-toggle', methods=['POST'])
+@session_check('admin')
+def utenti_bulk_toggle():
+    ids_raw    = request.form.getlist('ids[]')
+    current_id = session.get('user_id')
+    if not ids_raw:
+        flash('Nessun utente selezionato.', 'error')
+        return redirect(url_for('admin.utenti'))
+
+    ids    = [int(i) for i in ids_raw if i.isdigit() and int(i) != current_id]
+    record = User.query.filter(User.id.in_(ids)).all()
+    for u in record:
+        u.is_active = not u.is_active
+    db.session.commit()
+    flash(f'{len(record)} utenti aggiornati.', 'success')
     return redirect(url_for('admin.utenti'))

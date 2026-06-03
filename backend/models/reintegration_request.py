@@ -14,7 +14,11 @@ class ReintegrationRequest(db.Model):
         default='pending', nullable=False
     )
     is_urgent           = db.Column(db.Boolean, default=False, nullable=False)
-    notes               = db.Column(db.Text, nullable=True)
+    notes               = db.Column(db.Text, nullable=True)       # note del tecnico al momento della richiesta
+    warehouse_notes     = db.Column(db.Text, nullable=True)       # note magazzino
+    expected_arrival    = db.Column(db.Date, nullable=True)       # data prevista arrivo (livello RDA)
+    rda_panthera_date   = db.Column(db.Date, nullable=True)       # data inserimento RDA su Panthera
+    rda_panthera_code   = db.Column(db.String(32), nullable=True) # codice RDA Panthera (opzionale)
     created_at          = db.Column(db.DateTime, server_default=db.func.now())
     updated_at          = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 

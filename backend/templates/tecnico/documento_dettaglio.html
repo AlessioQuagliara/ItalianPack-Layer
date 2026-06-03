@@ -1,35 +1,34 @@
-<!-- templates/tecnico/documento_dettaglio.html -->
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% from "shared/macros/badges.html" import status_badge %}
 {% extends "admin/base.html" %}
 
 {% block content %}
 
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, msg in msgs %}
-    <div role="alert" class="alert {% if cat == 'error' %}alert-error{% else %}alert-success{% endif %} mb-4">
-      <span>{{ msg }}</span>
-    </div>
-  {% endfor %}
-{% endwith %}
+{{ breadcrumb([
+  ('Tecnico', url_for('tecnico.dashboard')),
+  ('Documenti Servizio', url_for('tecnico.documenti')),
+  ('Documento #' ~ doc.id, none)
+]) }}
 
 <!-- Header documento -->
 <div class="card bg-base-100 shadow-sm border border-base-300 mb-4">
   <div class="card-body p-4">
     <div class="flex items-center justify-between flex-wrap gap-2">
       <div>
-        <h2 class="text-lg font-bold">Documento #{{ doc.id }}</h2>
-        <p class="text-sm text-base-content/60">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h2 class="text-lg font-bold">Documento #{{ doc.id }}</h2>
+          {% if doc.commessa %}
+          <span class="badge badge-outline badge-sm font-mono">{{ doc.commessa }}</span>
+          {% endif %}
+        </div>
+        <p class="text-sm text-base-content/60 flex items-center gap-2 mt-1">
           Ordine: <span class="font-mono">{{ doc.order.panthera_id if doc.order else '—' }}</span>
-          &nbsp;|&nbsp;
-          Stato: <span class="badge badge-sm
-            {% if doc.status == 'open' %}badge-info
-            {% elif doc.status == 'closed' %}badge-success
-            {% else %}badge-warning{% endif %}">{{ doc.status }}</span>
+          &nbsp;·&nbsp; Stato: {{ status_badge(doc.status, 'doc_status') }}
         </p>
         {% if doc.description %}
         <p class="text-sm mt-1">{{ doc.description }}</p>
         {% endif %}
       </div>
-      <!-- Azioni principali -->
       <div class="flex gap-2 flex-wrap">
         {% if doc.status == 'open' %}
         <form method="post" action="{{ url_for('tecnico.documento_chiudi', doc_id=doc.id) }}">
@@ -73,7 +72,7 @@
           <tr class="bg-base-300">
             <th>Codice</th>
             <th>Descrizione</th>
-            <th>Quantità usata</th>
+            <th>Qtà usata</th>
             {% if doc.status == 'open' %}<th></th>{% endif %}
           </tr>
         </thead>
@@ -99,12 +98,37 @@
       </table>
     </div>
     {% else %}
-    <p class="text-sm text-base-content/50">Nessun materiale aggiunto.</p>
+    <div class="py-8 text-center">
+      <i class="ri-tools-line text-3xl text-base-content/20 block mb-2"></i>
+      <p class="text-sm text-base-content/50">Nessun materiale aggiunto</p>
+    </div>
     {% endif %}
   </div>
 </div>
 
-<!-- Modale: Aggiungi materiale -->
+<!-- Modifica commessa -->
+<div class="card bg-base-100 shadow-sm border border-base-300 mb-4">
+  <div class="card-body p-4">
+    <h3 class="font-bold mb-3"><i class="ri-price-tag-3-line mr-1"></i> Commessa</h3>
+    <form method="post" action="{{ url_for('tecnico.documento_aggiorna_commessa', doc_id=doc.id) }}"
+          class="flex gap-2 items-end flex-wrap">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="flex flex-col gap-1 flex-1 min-w-40">
+        <label class="label text-xs text-base-content/60">Codice commessa</label>
+        <input type="text" name="commessa"
+               value="{{ doc.commessa or '' }}"
+               class="input input-bordered input-sm font-mono"
+               placeholder="es. EX 000345"
+               pattern="[A-Z]{2,4}\s[0-9]{6}"
+               title="Formato: 2-4 lettere maiuscole + spazio + 6 cifre" />
+      </div>
+      <button type="submit" class="btn btn-sm btn-outline btn-primary">
+        <i class="ri-save-line"></i> Salva
+      </button>
+    </form>
+  </div>
+</div>
+
 {% if doc.status == 'open' %}
 <dialog id="add_mat_modal" class="modal">
   <div class="modal-box">
@@ -125,7 +149,6 @@
 </dialog>
 {% endif %}
 
-<!-- Modale: Richiedi RDA -->
 {% if doc.status == 'closed' %}
 <dialog id="rda_modal" class="modal">
   <div class="modal-box">
@@ -140,7 +163,8 @@
         <span class="label-text font-medium text-error">Richiesta URGENTE</span>
       </label>
       <label class="label">Note per il magazzino (opzionale)</label>
-      <textarea name="note" class="textarea textarea-bordered" rows="2" placeholder="Es: necessario entro venerdì..."></textarea>
+      <textarea name="note" class="textarea textarea-bordered" rows="2"
+                placeholder="Es: necessario entro venerdì..."></textarea>
       <div class="modal-action">
         <button type="submit" class="btn btn-primary w-full">Invia RDA al magazzino</button>
       </div>

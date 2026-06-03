@@ -1,0 +1,219 @@
+{% from "shared/components/bulk_action_bar.html" import bulk_bar %}
+{% from "shared/components/breadcrumb.html" import breadcrumb %}
+{% from "shared/components/qr_print_modal.html" import qr_modal, qr_print_assets %}
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+{{ breadcrumb([('Admin', url_for('admin.dashboard')), ('Furgoni', none)]) }}
+
+<!-- KPI -->
+<div class="grid grid-cols-3 gap-4 mb-6">
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Totale</p>
+          <p class="text-3xl font-bold mt-1">{{ kpi.totale }}</p>
+        </div>
+        <i class="ri-truck-line text-3xl text-primary opacity-60"></i>
+      </div>
+    </div>
+  </div>
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Attivi</p>
+          <p class="text-3xl font-bold mt-1 text-success">{{ kpi.attivi }}</p>
+        </div>
+        <i class="ri-checkbox-circle-line text-3xl text-success opacity-60"></i>
+      </div>
+    </div>
+  </div>
+  <div class="card bg-base-100 shadow-sm border border-base-300">
+    <div class="card-body p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-base-content/60 uppercase tracking-wide">Inattivi</p>
+          <p class="text-3xl font-bold mt-1 text-base-content/40">{{ kpi.inattivi }}</p>
+        </div>
+        <i class="ri-forbid-line text-3xl text-base-content/30 opacity-60"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="flex justify-end mb-3">
+  <button class="btn btn-primary btn-sm"
+          onclick="document.getElementById('modal_nuovo_furgone').showModal()">
+    <i class="ri-add-line"></i> Nuovo furgone
+  </button>
+</div>
+
+<!-- Tabella -->
+<div class="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+  <table id="tbl_furgoni" class="table table-zebra">
+    <thead>
+      <tr class="bg-base-300">
+        <th class="w-8"><input type="checkbox" class="checkbox checkbox-sm bulk-select-all"></th>
+        <th>Codice</th>
+        <th>Nome</th>
+        <th>Targa</th>
+        <th>Stato</th>
+        <th>Ordini attivi</th>
+        <th class="text-right">Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in furgoni %}
+      <tr class="hover:bg-base-200 {% if not v.is_active %}opacity-50{% endif %}">
+        <td><input type="checkbox" class="checkbox checkbox-sm bulk-row-check" value="{{ v.id }}"></td>
+        <td class="font-mono font-medium">{{ v.code }}</td>
+        <td>{{ v.name }}</td>
+        <td class="text-sm">{{ v.plate_number or '—' }}</td>
+        <td>
+          {% if v.is_active %}
+          <span class="badge badge-sm badge-success">Attivo</span>
+          {% else %}
+          <span class="badge badge-sm badge-ghost">Inattivo</span>
+          {% endif %}
+        </td>
+        <td>
+          {% set n = ordini_attivi.get(v.id, 0) %}
+          {% if n > 0 %}
+          <span class="badge badge-sm badge-info">{{ n }}</span>
+          {% else %}
+          <span class="text-base-content/30 text-sm">0</span>
+          {% endif %}
+        </td>
+        <td class="text-right">
+          <button type="button"
+                  onclick="document.getElementById('qr_modal_{{ v.id }}').showModal()"
+                  class="btn btn-xs btn-ghost" title="Stampa QR">
+            <i class="ri-qr-code-line"></i>
+          </button>
+          <button type="button"
+                  onclick="document.getElementById('modal_edit_{{ v.id }}').showModal()"
+                  class="btn btn-xs btn-ghost" title="Modifica">
+            <i class="ri-edit-line"></i>
+          </button>
+          <form method="post" action="{{ url_for('admin.furgoni_toggle', van_id=v.id) }}" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-xs btn-ghost"
+                    title="{% if v.is_active %}Disattiva{% else %}Attiva{% endif %}">
+              <i class="{% if v.is_active %}ri-toggle-fill text-success{% else %}ri-toggle-line{% endif %}"></i>
+            </button>
+          </form>
+          {% set n_assoc = v.orders|length + v.service_documents|length %}
+          <form method="post" action="{{ url_for('admin.furgoni_elimina', van_id=v.id) }}" class="inline"
+                onsubmit="return confirm('Eliminare il furgone {{ v.code }}?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-xs btn-ghost text-error" title="Elimina"
+                    {% if n_assoc > 0 %}disabled{% endif %}>
+              <i class="ri-delete-bin-line"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" class="py-16 text-center">
+          <i class="ri-truck-line text-4xl text-base-content/20 block mb-3"></i>
+          <p class="text-base-content/50 font-medium">Nessun furgone registrato</p>
+          <button class="btn btn-primary btn-sm mt-4"
+                  onclick="document.getElementById('modal_nuovo_furgone').showModal()">
+            Aggiungi il primo furgone
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% call bulk_bar('tbl_furgoni') %}
+  <form method="post" action="{{ url_for('admin.furgoni_bulk_toggle') }}" data-bulk>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-xs btn-outline">
+      <i class="ri-toggle-line"></i> Attiva/Disattiva
+    </button>
+  </form>
+{% endcall %}
+
+<!-- QR modali -->
+{% for v in furgoni %}{{ qr_modal(v) }}{% endfor %}
+
+<!-- Edit modali -->
+{% for v in furgoni %}
+<dialog id="modal_edit_{{ v.id }}" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-4">Modifica furgone {{ v.code }}</h3>
+    <form method="post" action="{{ url_for('admin.furgoni_edit', van_id=v.id) }}" class="flex flex-col gap-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="form-control">
+        <div class="label"><span class="label-text">Codice *</span>
+          <span class="label-text-alt text-base-content/50">alfanumerico, max 32</span></div>
+        <input type="text" name="code" value="{{ v.code }}" class="input input-bordered w-full"
+               maxlength="32" required pattern="[A-Za-z0-9\-]+">
+      </label>
+      <label class="form-control">
+        <div class="label"><span class="label-text">Nome *</span></div>
+        <input type="text" name="name" value="{{ v.name }}" class="input input-bordered w-full"
+               maxlength="128" required>
+      </label>
+      <label class="form-control">
+        <div class="label"><span class="label-text">Targa</span>
+          <span class="label-text-alt text-base-content/50">opzionale — es. AA000AA</span></div>
+        <input type="text" name="plate_number" value="{{ v.plate_number or '' }}"
+               class="input input-bordered w-full" maxlength="7"
+               pattern="[A-Za-z]{2}[0-9]{3}[A-Za-z]{2}">
+      </label>
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary"><i class="ri-save-line"></i> Salva</button>
+        <button type="button" class="btn btn-ghost"
+                onclick="document.getElementById('modal_edit_{{ v.id }}').close()">Annulla</button>
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>chiudi</button></form>
+</dialog>
+{% endfor %}
+
+<!-- Modale nuovo furgone -->
+<dialog id="modal_nuovo_furgone" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-4">Nuovo furgone</h3>
+    <form method="post" action="{{ url_for('admin.furgoni_nuovo') }}" class="flex flex-col gap-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="form-control">
+        <div class="label"><span class="label-text">Codice *</span>
+          <span class="label-text-alt text-base-content/50">alfanumerico, max 32</span></div>
+        <input type="text" name="code" class="input input-bordered w-full"
+               maxlength="32" required pattern="[A-Za-z0-9\-]+" placeholder="es. F01">
+      </label>
+      <label class="form-control">
+        <div class="label"><span class="label-text">Nome *</span></div>
+        <input type="text" name="name" class="input input-bordered w-full"
+               maxlength="128" required placeholder="es. Furgone Bianco Grande">
+      </label>
+      <label class="form-control">
+        <div class="label"><span class="label-text">Targa</span>
+          <span class="label-text-alt text-base-content/50">opzionale — es. AA000AA</span></div>
+        <input type="text" name="plate_number" class="input input-bordered w-full"
+               maxlength="7" pattern="[A-Za-z]{2}[0-9]{3}[A-Za-z]{2}" placeholder="es. AA123BB">
+      </label>
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary"><i class="ri-add-line"></i> Crea furgone</button>
+        <button type="button" class="btn btn-ghost"
+                onclick="document.getElementById('modal_nuovo_furgone').close()">Annulla</button>
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>chiudi</button></form>
+</dialog>
+
+{{ qr_print_assets() }}
+
+{% endblock %}

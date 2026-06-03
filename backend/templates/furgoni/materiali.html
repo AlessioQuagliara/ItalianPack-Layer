@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ van.name }} — Materiali</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.css"
+        integrity="sha512-kJlvECunwXftkPwyvHbclArO8wszgBGisiLeuDFwNM8ws+wKIw0sv1os3ClWZOcrEB2eRXULYUsm8OVRGJKwGA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script>
+    (() => {
+      const t = localStorage.getItem('theme') || 'default';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body class="min-h-screen bg-base-200">
+
+  <!-- Header furgone -->
+  <div class="bg-base-100 border-b border-base-300 px-4 py-5">
+    <div class="max-w-2xl mx-auto">
+      <div class="flex items-center gap-3">
+        <i class="ri-truck-line text-3xl text-primary"></i>
+        <div>
+          <h1 class="text-2xl font-bold leading-tight">{{ van.name }}</h1>
+          <div class="flex items-center gap-3 mt-0.5 text-base-content/60 text-sm">
+            <span class="font-mono">{{ van.code }}</span>
+            {% if van.plate_number %}
+            <span>·</span>
+            <span>{{ van.plate_number }}</span>
+            {% endif %}
+            {% if not van.is_active %}
+            <span class="badge badge-ghost badge-sm">Inattivo</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenuto principale -->
+  <div class="max-w-2xl mx-auto px-4 py-6">
+
+    {% if materiali %}
+
+    <!-- Contatore -->
+    <p class="text-sm text-base-content/60 mb-4">
+      <i class="ri-list-check mr-1"></i>
+      {{ materiali|length }} codici distinti registrati
+    </p>
+
+    <!-- Tabella materiali -->
+    <div class="rounded-box border border-base-300 overflow-hidden bg-base-100">
+      <table class="table">
+        <thead>
+          <tr class="bg-base-300">
+            <th class="text-base">Codice</th>
+            <th class="text-base">Descrizione</th>
+            <th class="text-base text-right">Qtà tot.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in materiali %}
+          <tr class="hover:bg-base-200">
+            <td class="font-mono font-semibold text-base">{{ m.part_code }}</td>
+            <td class="text-base text-base-content/80">{{ m.description or '—' }}</td>
+            <td class="text-right">
+              <span class="badge badge-lg badge-primary font-bold">{{ m.qty_totale }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% else %}
+
+    <!-- Empty state -->
+    <div class="flex flex-col items-center justify-center py-20 text-center">
+      <i class="ri-inbox-line text-5xl text-base-content/20 mb-4"></i>
+      <p class="text-xl font-semibold text-base-content/50">Nessun materiale registrato</p>
+      <p class="text-sm text-base-content/40 mt-1">
+        I materiali appariranno qui dopo la chiusura di documenti di servizio associati a questo furgone.
+      </p>
+    </div>
+
+    {% endif %}
+
+  </div>
+
+  <!-- Footer con timestamp -->
+  <footer class="border-t border-base-300 bg-base-100 px-4 py-4 mt-8">
+    <div class="max-w-2xl mx-auto text-center text-xs text-base-content/40">
+      {% if last_update %}
+      Aggiornato al: {{ last_update.strftime('%d/%m/%Y %H:%M') }}
+      {% else %}
+      Nessun documento chiuso
+      {% endif %}
+      &nbsp;·&nbsp; PartFlow
+    </div>
+  </footer>
+
+</body>
+</html>
