@@ -1,0 +1,17 @@
+{% extends "admin/master.html" %}
+{% block body %}
+<div class="upload-panel">
+    <p class="lead">Carica il file Excel della distinta per creare una nuova commessa.</p>
+    <p class="hint">Colonne riconosciute: Codice, Descrizione, Cassetto, Ubicazione, Quantità, Mancanti, RDA, AVANZI, Gruppo, Descrizione Gruppo.</p>
+
+    <form method="POST" action="{{ url_for('.carica') }}" enctype="multipart/form-data">
+        <label class="field-label" for="nome">Nome commessa</label>
+        <input type="text" id="nome" name="nome" placeholder="Es. Commessa 2026-014" maxlength="255" required>
+
+        <label class="field-label" for="excel_file">File Excel della distinta</label>
+        <input type="file" id="excel_file" name="excel_file" accept=".xlsx,.xlsm" required>
+
+        <button type="submit" class="btn-primary">Crea commessa</button>
+    </form>
+</div>
+{% endblock %}

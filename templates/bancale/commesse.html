@@ -1,0 +1,65 @@
+{% extends "admin/master.html" %}
+{% block content_class %}content-full{% endblock %}
+{% block body %}
+<div class="commesse-toolbar">
+    <div class="bulk-actions" id="bulk-actions" hidden>
+        <span id="bulk-count">0 selezionate</span>
+        <button type="button" class="btn-secondary" id="btn-bulk-stato">Cambia Stato</button>
+    </div>
+    <a href="{{ url_for('carica_commessa.index') }}" class="btn-primary">+ Nuova commessa</a>
+</div>
+
+<div class="table-wrap">
+    <table class="commesse-table" data-azioni-base="{{ azioni_base }}">
+        <thead>
+            <tr>
+                <th class="col-check"><input type="checkbox" id="check-all"></th>
+                <th>Commessa</th>
+                <th>Stato</th>
+                <th>Righe</th>
+                <th>Creata il</th>
+                <th class="col-actions-head">Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in commesse %}
+            <tr data-commessa-id="{{ c.id }}">
+                <td class="col-check"><input type="checkbox" class="row-check" value="{{ c.id }}"></td>
+                <td class="col-nome">{{ c.nome }}</td>
+                <td><span class="badge badge-{{ c.stato }}" data-stato="{{ c.stato }}">{{ c.stato_label }}</span></td>
+                <td>{{ c.numero_righe }}</td>
+                <td>{{ c.creato_il.strftime("%d/%m/%Y %H:%M") if c.creato_il else "" }}</td>
+                <td class="col-actions">
+                    <a href="{{ url_for('bancale.mappa', commessa_id=c.id) }}" class="btn-mappa">Vai alla Mappa &#128506;&#65039;</a>
+                    <button type="button" class="btn-icon-delete" data-commessa-id="{{ c.id }}" title="Elimina commessa">&#128465;&#65039;</button>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="empty-row">Nessuna commessa caricata. Usa "Nuova commessa" per iniziare.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal-overlay" id="stato-modal-overlay" hidden>
+    <div class="modal-box">
+        <h3>Cambia stato commesse</h3>
+        <p class="hint" id="stato-modal-count"></p>
+        <label class="field-label" for="stato-modal-select">Nuovo stato</label>
+        <select id="stato-modal-select">
+            {% for s in stati %}
+            <option value="{{ s }}">{{ stati_label[s] }}</option>
+            {% endfor %}
+        </select>
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="stato-modal-cancel">Annulla</button>
+            <button type="button" class="btn-primary" id="stato-modal-apply">Applica</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bancale.css') }}">
+<script src="{{ url_for('static', filename='js/commesse.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+uploads/*
+outputs/*
+!uploads/.gitkeep
+!outputs/.gitkeep
+
+# Database e dati sensibili (non versionare)
+*.db
+*.db.backup-*
+gestionale.db
+gestionale.db.backup-*
+
+# Immagini dei cartelli (dati generati)
+cartelli_immagini/

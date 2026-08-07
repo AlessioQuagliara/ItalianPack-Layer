@@ -1,0 +1,42 @@
+{% extends "admin/master.html" %}
+{% block body %}
+<div class="upload-panel">
+    <p class="lead">{{ page_description }}</p>
+
+    <form id="cartello-form"
+          data-genera-url="{{ url_for('.genera') }}"
+          data-status-url="{{ url_for('.status', job_id='JOBID') }}">
+        <label class="field-label" for="nome">Modello</label>
+        <select id="nome" name="nome" required>
+            <option value="" disabled selected>Seleziona un modello...</option>
+            {% for nome in nomi %}
+            <option value="{{ nome }}">{{ nome }}</option>
+            {% endfor %}
+        </select>
+
+        <label class="field-label" for="titolo">Titolo</label>
+        <input type="text" id="titolo" name="titolo" placeholder="Titolo del cartello" required>
+
+        <label class="field-label" for="sottotitolo">Sottotitolo</label>
+        <input type="text" id="sottotitolo" name="sottotitolo" placeholder="Sottotitolo (facoltativo)">
+
+        <button type="submit" id="submit-btn" class="btn-primary">Genera PDF</button>
+    </form>
+
+    <div id="job-status" class="job-status" hidden>
+        <div class="spinner"></div>
+        <span id="job-status-text">Generazione PDF in corso...</span>
+    </div>
+
+    <div id="job-error" class="job-error" hidden></div>
+
+    <div id="job-result" class="job-result" hidden>
+        <a id="job-download-link" class="btn-secondary" target="_blank" rel="noopener">Apri di nuovo il PDF</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<script src="{{ url_for('static', filename='js/job-poller.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/cartello-upload.js') }}" defer></script>
+{% endblock %}

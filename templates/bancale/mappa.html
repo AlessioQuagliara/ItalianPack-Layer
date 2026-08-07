@@ -1,0 +1,143 @@
+{% extends "admin/master.html" %}
+{% block content_class %}content-full{{ ' vista-lettura' if vista_lettura else '' }}{% endblock %}
+{% block title %}{{ commessa.nome }} - Mappatura Bancale{% endblock %}
+{% block page_heading %}Mappatura: {{ commessa.nome }}{% endblock %}
+{% block body %}
+<div class="contenitori-tabs">
+    {% for c in contenitori %}
+    <a href="{{ url_for('bancale.mappa', commessa_id=commessa.id, contenitore_id=c.id) }}{{ '?vista=1' if vista_lettura else '' }}"
+       class="contenitore-tab {{ 'active' if c.id == contenitore.id else '' }}"
+       data-contenitore-id="{{ c.id }}">
+        <span class="tab-match-icon" hidden>&#128269;</span>
+        <span class="tab-label">{{ c.nome_visualizzato }}</span>
+    </a>
+    {% endfor %}
+    <button type="button" id="btn-aggiungi-supporto" class="contenitore-tab contenitore-tab-add">+ Aggiungi Supporto</button>
+</div>
+
+<div class="search-toast" id="search-toast" hidden></div>
+
+<div class="bancale-wrap"
+     data-commessa-id="{{ commessa.id }}"
+     data-contenitore-id="{{ contenitore.id }}"
+     data-vaschette-url="{{ vaschette_url }}"
+     data-vaschetta-item-base="{{ vaschetta_item_base }}"
+     data-pallet-w="{{ contenitore.dimensioni.w }}"
+     data-pallet-h="{{ contenitore.dimensioni.h }}"
+     data-contenitori-url="{{ url_for('bancale.contenitori_collection', commessa_id=commessa.id) }}"
+     data-stampa-etichette-url="{{ url_for('bancale.stampa_etichette_gruppi', contenitore_id=contenitore.id) }}"
+     data-stampa-cartello-url="{{ url_for('bancale.stampa_cartello', commessa_id=commessa.id) }}"
+     data-job-status-base="{{ url_for('bancale.job_status', job_id='JOBID') }}"
+     data-elimina-supporto-base="{{ url_for('bancale.elimina_contenitore', contenitore_id=1).rsplit('/', 2)[0] }}"
+     data-mappa-base="{{ url_for('bancale.mappa', commessa_id=commessa.id) }}"
+     data-vista-lettura="{{ 'true' if vista_lettura else 'false' }}">
+
+    <div class="bancale-toolbar">
+        <div class="bancale-search">
+            <input type="text" id="bancale-search-input" placeholder="Cerca codice articolo...">
+        </div>
+        <div class="bancale-actions">
+            <button type="button" id="btn-stampa-etichette" class="btn-secondary">Stampa Etichette Gruppi</button>
+            <button type="button" id="btn-stampa-cartello" class="btn-secondary">Stampa Cartello A4</button>
+            <button type="button" id="btn-elimina-supporto" class="btn-icon-delete" title="Elimina questo supporto">&#128465;&#65039;</button>
+        </div>
+        <div class="bancale-legend">
+            <span class="legend-item"><span class="legend-swatch swatch-slim"></span> Slim 60x13 cm</span>
+            <span class="legend-item"><span class="legend-swatch swatch-medium"></span> Medium 60x27 cm</span>
+            <span class="legend-item"><span class="legend-swatch swatch-big"></span> Big 60x40 cm</span>
+        </div>
+    </div>
+
+    <div class="bancale-main">
+        <div class="bancale-palette">
+            <p class="field-label">Trascina nel supporto</p>
+            <div class="palette-item" data-tipo="slim" style="--vw:120px; --vh:26px;">Slim</div>
+            <div class="palette-item" data-tipo="medium" style="--vw:120px; --vh:54px;">Medium</div>
+            <div class="palette-item" data-tipo="big" style="--vw:120px; --vh:80px;">Big</div>
+            <p class="hint">Clic su una vaschetta piazzata per assegnare un gruppo o rimuoverla. Trascina per spostarla: si aggancia da sola ai bordi delle vaschette vicine. Premi <strong>R</strong> mentre trascini (o doppio clic su una vaschetta piazzata) per ruotarla di 90°.</p>
+        </div>
+
+        <div class="bancale-stage">
+            <div class="bancale-pallet-frame">
+                <div class="bancale-pallet" id="bancale-pallet" style="width:{{ contenitore.dimensioni.w }}px; height:{{ contenitore.dimensioni.h }}px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bancale-tooltip" id="bancale-tooltip" hidden></div>
+
+<div class="modal-overlay" id="bancale-modal-overlay" hidden>
+    <div class="modal-box">
+        <h3>Assegna gruppo</h3>
+        <p class="hint" id="bancale-modal-tipo"></p>
+        <label class="field-label" for="bancale-modal-input">Codice gruppo o articolo</label>
+        <input type="text" id="bancale-modal-input" autofocus autocomplete="off" placeholder="Scansiona o digita un codice...">
+        <p id="bancale-modal-error" class="job-error" hidden></p>
+        <details class="bancale-modal-hint">
+            <summary>Gruppi disponibili in questa commessa</summary>
+            <ul id="bancale-modal-gruppi-list"></ul>
+        </details>
+        <div class="modal-actions">
+            <div class="modal-actions-left">
+                <button type="button" class="btn-secondary" id="bancale-modal-delete">Rimuovi</button>
+                <button type="button" class="btn-secondary" id="bancale-modal-rotate">Ruota 90&deg; &#128260;</button>
+            </div>
+            <div class="modal-actions-right">
+                <button type="button" class="btn-secondary" id="bancale-modal-cancel">Annulla</button>
+                <button type="button" class="btn-primary" id="bancale-modal-save">Salva</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="supporto-modal-overlay" hidden>
+    <div class="modal-box">
+        <h3>Aggiungi supporto</h3>
+        <label class="field-label" for="supporto-tipo">Tipo</label>
+        <select id="supporto-tipo">
+            <option value="bancale">Bancale (EPAL) 120x80 cm</option>
+            <option value="scaffale">Scaffale (5 ripiani da 60x120 cm)</option>
+            <option value="carrello">Carrello 100x60 cm</option>
+        </select>
+        <label class="field-label" for="supporto-etichetta">Nome personalizzato (opzionale)</label>
+        <input type="text" id="supporto-etichetta" placeholder="Es. Bancale Nord" maxlength="100">
+        <p id="supporto-modal-error" class="job-error" hidden></p>
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="supporto-modal-cancel">Annulla</button>
+            <button type="button" class="btn-primary" id="supporto-modal-crea">Crea</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="cartello-modal-overlay" hidden>
+    <div class="modal-box">
+        <h3>Stampa Cartello A4</h3>
+        <p class="hint">Commessa: {{ commessa.nome }}</p>
+        <label class="field-label" for="cartello-immagine">Immagine macchina</label>
+        <select id="cartello-immagine">
+            {% for nome in nomi_cartelli %}
+            <option value="{{ nome }}">{{ nome }}</option>
+            {% endfor %}
+        </select>
+        <label class="field-label" for="cartello-numero-bancale">Numero / nome supporto</label>
+        <input type="text" id="cartello-numero-bancale" value="{{ contenitore.numero }}" maxlength="50">
+        <p id="cartello-modal-error" class="job-error" hidden></p>
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="cartello-modal-cancel">Annulla</button>
+            <button type="button" class="btn-primary" id="cartello-modal-genera">Genera PDF</button>
+        </div>
+    </div>
+</div>
+
+<script type="application/json" id="bancale-righe-data">{{ righe_json | tojson }}</script>
+<script type="application/json" id="bancale-vaschette-data">{{ vaschette_json | tojson }}</script>
+<script type="application/json" id="bancale-contenitori-data">{{ contenitori_json | tojson }}</script>
+<script type="application/json" id="bancale-ricerca-globale-data">{{ ricerca_globale_json | tojson }}</script>
+{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bancale.css') }}">
+<script src="{{ url_for('static', filename='js/job-poller.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/bancale.js') }}" defer></script>
+{% endblock %}

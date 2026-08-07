@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ page_title or "Dashboard" }} - Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-icon">&#127991;</span>
+                <span class="brand-text">Dashboard</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link {{ 'active' if request.endpoint == 'admin.index' else '' }}" href="{{ url_for('admin.index') }}">
+                    <span class="nav-icon">&#8962;</span> Home
+                </a>
+                <div class="nav-section">Stampa Etichette</div>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('etichette_barcode.') else '' }}" href="{{ url_for('etichette_barcode.index') }}">
+                    <span class="nav-icon">&#9776;</span> Con Barcode
+                </a>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('etichette_no_barcode.') else '' }}" href="{{ url_for('etichette_no_barcode.index') }}">
+                    <span class="nav-icon">&#65;</span> Senza Barcode
+                </a>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('etichette_viti.') else '' }}" href="{{ url_for('etichette_viti.index') }}">
+                    <span class="nav-icon">&#9881;</span> Viti (Speciali)
+                </a>
+                <div class="nav-section">Cartelli</div>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('cartelli.') else '' }}" href="{{ url_for('cartelli.index') }}">
+                    <span class="nav-icon">&#128196;</span> Genera Cartello A4
+                </a>
+                <div class="nav-section">Mappatura Bancale</div>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('carica_commessa.') else '' }}" href="{{ url_for('carica_commessa.index') }}">
+                    <span class="nav-icon">&#128228;</span> Carica Distinta
+                </a>
+                <a class="nav-link {{ 'active' if request.endpoint and (request.endpoint.startswith('commesse.') or request.endpoint == 'bancale.mappa') else '' }}" href="{{ url_for('commesse.index') }}">
+                    <span class="nav-icon">&#128203;</span> Commesse
+                </a>
+            </nav>
+        </aside>
+        <div class="main">
+            <header class="topbar">
+                <h1>{% block page_heading %}{{ page_title or "Dashboard" }}{% endblock %}</h1>
+            </header>
+            <main class="content {% block content_class %}{% endblock %}">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                {% block body %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

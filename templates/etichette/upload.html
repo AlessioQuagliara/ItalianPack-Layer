@@ -1,0 +1,33 @@
+{% extends "admin/master.html" %}
+{% block body %}
+<div class="upload-panel">
+    <p class="lead">{{ page_description }}</p>
+    <p class="hint">{{ columns_help }}</p>
+
+    <form id="upload-form"
+          data-upload-url="{{ url_for('.upload') }}"
+          data-status-url="{{ url_for('.status', job_id='JOBID') }}">
+        <label class="file-drop" id="file-drop">
+            <input type="file" id="excel-file" name="excel_file" accept=".xlsx,.xlsm" required>
+            <span id="file-label">Trascina qui il file Excel o clicca per selezionarlo</span>
+        </label>
+        <button type="submit" id="submit-btn" class="btn-primary">Genera PDF</button>
+    </form>
+
+    <div id="job-status" class="job-status" hidden>
+        <div class="spinner"></div>
+        <span id="job-status-text">Elaborazione in corso...</span>
+    </div>
+
+    <div id="job-error" class="job-error" hidden></div>
+
+    <div id="job-result" class="job-result" hidden>
+        <a id="job-download-link" class="btn-secondary" target="_blank" rel="noopener">Apri di nuovo il PDF</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<script src="{{ url_for('static', filename='js/job-poller.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/etichette-upload.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "admin/master.html" %}
+{% block body %}
+<p class="lead">Seleziona uno strumento per generare le etichette a partire da un file Excel.</p>
+<p class="hint">Ogni sezione funziona in modo indipendente: carichi il file, lo script gira in background e il PDF si apre in una nuova scheda.</p>
+<div class="card-grid">
+    {% for tool in tools %}
+    <a class="tool-card" href="{{ url_for(tool.endpoint) }}">
+        <h3>{{ tool.title }}</h3>
+        <p>{{ tool.description }}</p>
+        <span class="tool-cta">Apri &rarr;</span>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}
